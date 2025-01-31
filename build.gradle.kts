@@ -17,6 +17,7 @@ minecraft_fp {
     }
 
     core {
+        coreModClass = "internal.core.CoreLoadingPlugin"
         accessTransformerFile = "fluidlogged_at.cfg"
     }
 

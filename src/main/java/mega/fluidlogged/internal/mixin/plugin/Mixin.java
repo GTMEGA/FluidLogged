@@ -41,9 +41,8 @@ public enum Mixin implements IMixin {
     common_S23PacketBlockChangeMixin(Side.COMMON, always(), "S23PacketBlockChangeMixin"),
     common_WorldMixin(Side.COMMON, always(), "WorldMixin"),
 
-    client_RenderBlocksMixin(Side.CLIENT, always(), "RenderBlocksMixin"),
-    client_WorldRendererMixin(Side.CLIENT, always(), "WorldRendererMixin"),
     client_BlockLiquidMixin(Side.CLIENT, always(), "BlockLiquidMixin"),
+    client_RenderBlocksMixin(Side.CLIENT, always(), "RenderBlocksMixin"),
     ;
     // @formatter:on
 
