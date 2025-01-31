@@ -31,14 +31,10 @@ import lombok.val;
 import mega.fluidlogged.Tags;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
-import net.minecraft.client.renderer.RenderBlocks;
-
-import java.lang.reflect.Method;
 
 /**
  * Waterlogging renderer hook
@@ -109,13 +105,11 @@ public class FluidLogRendererInjector implements TurboClassTransformer {
             iter.add(new VarInsnNode(Opcodes.ILOAD, 21));
             iter.add(new VarInsnNode(Opcodes.ILOAD, 22));
             iter.add(new VarInsnNode(Opcodes.ILOAD, 17));
-            Method target;
-            try {
-                target = ASMHooks.class.getDeclaredMethod("drawFluidLogged", RenderBlocks.class, int.class, int.class, int.class, int.class);
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-            iter.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(target.getDeclaringClass()), target.getName(), Type.getMethodDescriptor(target), false));
+            iter.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        Tags.ROOT_PKG.replace('.', '/') + "/internal/core/ASMHooks",
+                                        "drawFluidLogged",
+                                        "(Lnet/minecraft/client/renderer/RenderBlocks;IIII)I",
+                                        false));
             iter.add(new InsnNode(Opcodes.DUP));
             iter.add(new InsnNode(Opcodes.ICONST_1));
             iter.add(new InsnNode(Opcodes.IAND));
