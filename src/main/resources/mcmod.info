@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Waterlogging with any fluid.",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "https://github.com/GTMEGA/FluidLogged",
+    "updateUrl": "",
+    "authorList": [
+      "FalsePattern"
+    ],
+    "credits": "MEGA Team",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
