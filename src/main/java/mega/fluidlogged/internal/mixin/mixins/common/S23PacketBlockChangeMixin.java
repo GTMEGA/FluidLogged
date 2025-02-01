@@ -22,8 +22,8 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.internal.mixin.hook.FLPacket;
 import mega.fluidlogged.api.IFluid;
+import mega.fluidlogged.internal.mixin.hook.FLPacket;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

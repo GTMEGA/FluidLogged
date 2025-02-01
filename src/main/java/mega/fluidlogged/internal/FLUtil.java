@@ -26,8 +26,6 @@ import lombok.val;
 import mega.fluidlogged.api.FLBlock;
 import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
-import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
-import mega.fluidlogged.internal.mixin.hook.FLWorld;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFence;

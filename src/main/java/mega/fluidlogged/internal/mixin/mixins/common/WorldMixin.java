@@ -22,17 +22,17 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
+import lombok.val;
+import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
 import mega.fluidlogged.internal.mixin.hook.FLChunk;
-import mega.fluidlogged.api.IFluid;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
-import lombok.val;
 import mega.fluidlogged.internal.mixin.hook.FLWorld;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

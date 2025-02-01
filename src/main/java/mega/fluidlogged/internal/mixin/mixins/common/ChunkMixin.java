@@ -22,10 +22,10 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
+import lombok.val;
+import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLChunk;
 import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
-import mega.fluidlogged.api.IFluid;
-import lombok.val;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
