@@ -22,9 +22,9 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.internal.FluidLogBlockAccess;
-import mega.fluidlogged.internal.FluidLogChunk;
-import mega.fluidlogged.internal.IFluid;
+import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.internal.mixin.hook.FLChunk;
+import mega.fluidlogged.api.IFluid;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,7 +35,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
 
 @Mixin(ChunkCache.class)
-public abstract class ChunkCacheMixin implements FluidLogBlockAccess {
+public abstract class ChunkCacheMixin implements FLBlockAccess {
     @Shadow private int chunkX;
 
     @Shadow private Chunk[][] chunkArray;
@@ -56,7 +56,7 @@ public abstract class ChunkCacheMixin implements FluidLogBlockAccess {
         val chunk = slice[cZ];
         if (chunk == null || chunk instanceof EmptyChunk)
             return;
-        ((FluidLogChunk)chunk).fl$setFluid(x & 0xF, y, z & 0xF, fluid);
+        ((FLChunk)chunk).fl$setFluid(x & 0xF, y, z & 0xF, fluid);
     }
 
     @Override
@@ -73,6 +73,6 @@ public abstract class ChunkCacheMixin implements FluidLogBlockAccess {
         val chunk = slice[cZ];
         if (chunk == null || chunk instanceof EmptyChunk)
             return null;
-        return ((FluidLogChunk)chunk).fl$getFluid(x & 0xF, y, z & 0xF);
+        return ((FLChunk)chunk).fl$getFluid(x & 0xF, y, z & 0xF);
     }
 }

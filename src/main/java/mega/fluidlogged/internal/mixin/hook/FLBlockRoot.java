@@ -20,24 +20,14 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal.mixin.mixins.client;
-
-import mega.fluidlogged.internal.FLUtil;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+package mega.fluidlogged.internal.mixin.hook;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockLiquid;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
-@Mixin(BlockLiquid.class)
-public abstract class BlockLiquidMixin {
-    @Redirect(method = "shouldSideBeRendered",
-              at = @At(value = "INVOKE",
-                       target = "Lnet/minecraft/world/IBlockAccess;getBlock(III)Lnet/minecraft/block/Block;"),
-              require = 1)
-    private Block getFluidLogged(IBlockAccess instance, int x, int y, int z) {
-        return FLUtil.getFluidOrBlock(instance, x, y, z);
-    }
+import java.util.Random;
+
+public interface FLBlockRoot {
+    void fl$updateTick(World world, int x, int y, int z, Random random);
+    void fl$onNeighborChange(World world, int x, int y, int z, Block neighbor);
 }

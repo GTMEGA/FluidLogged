@@ -35,11 +35,15 @@ import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
     // @formatter:off
+
+    common_BlockLiquidMixin(Side.COMMON, always(), "BlockLiquidMixin"),
+    common_BlockMixin(Side.COMMON, always(), "BlockMixin"),
     common_ChunkCacheMixin(Side.COMMON, always(), "ChunkCacheMixin"),
     common_ChunkMixin(Side.COMMON, always(), "ChunkMixin"),
     common_ExtendedBlockStorageMixin(Side.COMMON, always(), "ExtendedBlockStorageMixin"),
     common_S23PacketBlockChangeMixin(Side.COMMON, always(), "S23PacketBlockChangeMixin"),
     common_WorldMixin(Side.COMMON, always(), "WorldMixin"),
+    common_WorldServerMixin(Side.COMMON, always(), "WorldServerMixin"),
 
     client_BlockLiquidMixin(Side.CLIENT, always(), "BlockLiquidMixin"),
     client_RenderBlocksMixin(Side.CLIENT, always(), "RenderBlocksMixin"),

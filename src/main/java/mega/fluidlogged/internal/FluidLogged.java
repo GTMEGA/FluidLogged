@@ -43,7 +43,7 @@ public class FluidLogged {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        DataRegistry.registerDataManager(new FluidLogManager());
+        DataRegistry.registerDataManager(new FLManager());
         MinecraftForge.EVENT_BUS.register(this);
     }
 

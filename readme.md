@@ -6,8 +6,7 @@ This mod is currently Work In Progress, no public API yet!
 
 Major features not yet implemented:
 - Waterlogged blocks interacting with entities
-- Fluid flow with waterlogged blocks
-- Forge fluid rendering
+- Forge fluid rendering/simulation
 
 ## Dependencies
 [ChunkAPI](https://github.com/FalsePattern/ChunkAPI)

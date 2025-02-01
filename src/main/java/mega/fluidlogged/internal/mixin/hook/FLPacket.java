@@ -20,11 +20,12 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal;
+package mega.fluidlogged.internal.mixin.hook;
 
+import mega.fluidlogged.api.IFluid;
 import org.jetbrains.annotations.Nullable;
 
-public interface FluidLogPacket {
+public interface FLPacket {
     @Nullable IFluid wl$getFluidLog();
     void wl$setFluidLog(@Nullable IFluid fluid);
 }

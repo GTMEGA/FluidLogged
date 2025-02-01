@@ -23,13 +23,16 @@
 package mega.fluidlogged.internal.mixin.mixins.common;
 
 import mega.fluidlogged.internal.FLUtil;
-import mega.fluidlogged.internal.FluidLogBlockAccess;
-import mega.fluidlogged.internal.FluidLogChunk;
-import mega.fluidlogged.internal.IFluid;
+import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
+import mega.fluidlogged.internal.mixin.hook.FLChunk;
+import mega.fluidlogged.api.IFluid;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import lombok.val;
+import mega.fluidlogged.internal.mixin.hook.FLWorld;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -38,12 +41,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.block.Block;
+import net.minecraft.world.NextTickListEntry;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
 
+import java.util.Collections;
+import java.util.List;
+
 @Mixin(World.class)
-public abstract class WorldMixin implements FluidLogBlockAccess {
+public abstract class WorldMixin implements FLBlockAccess, FLWorld {
+    // region hooks
     @Shadow public abstract Chunk getChunkFromBlockCoords(int x, int z);
 
     @Shadow public abstract void markBlockForUpdate(int p_147471_1_, int p_147471_2_, int p_147471_3_);
@@ -74,7 +82,7 @@ public abstract class WorldMixin implements FluidLogBlockAccess {
                                       argsOnly = true) int wX,
                                @Local(ordinal = 2,
                                       argsOnly = true) int wZ) {
-        val fl$chunk = (FluidLogChunk) chunk;
+        val fl$chunk = (FLChunk) chunk;
         val currentFluid = fl$chunk.fl$getFluid(cX, y, cZ);
         boolean isFluidLoggable = FLUtil.isFluidLoggable((World)(Object)this, wX, y, wZ, block, currentFluid);
         if (!isFluidLoggable) {
@@ -92,12 +100,25 @@ public abstract class WorldMixin implements FluidLogBlockAccess {
         return original.call(chunk, cX, y, cZ, block, meta);
     }
 
+    @WrapOperation(method = "notifyBlockOfNeighborChange",
+                   at = @At(value = "INVOKE",
+                            target = "Lnet/minecraft/block/Block;onNeighborBlockChange(Lnet/minecraft/world/World;IIILnet/minecraft/block/Block;)V"),
+                   require = 1)
+    private void onNeighborFluidChange(Block instance, World worldIn, int x, int y, int z, Block neighbor, Operation<Void> original) {
+        ((FLBlockRoot)instance).fl$onNeighborChange(worldIn, x, y, z, neighbor);
+        original.call(instance, worldIn, x, y, z, neighbor);
+    }
+
+    // endregion
+
+    // region FLBlockAccess
+
     @Override
     public void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid) {
         val chunk = getChunkFromBlockCoords(x, z);
         if (chunk == null || chunk instanceof EmptyChunk)
             return;
-        ((FluidLogChunk)chunk).fl$setFluid(x & 0xF, y, z & 0xF, fluid);
+        ((FLChunk)chunk).fl$setFluid(x & 0xF, y, z & 0xF, fluid);
         markBlockForUpdate(x, y, z);
     }
 
@@ -106,6 +127,24 @@ public abstract class WorldMixin implements FluidLogBlockAccess {
         val chunk = getChunkFromBlockCoords(x, z);
         if (chunk == null || chunk instanceof EmptyChunk)
             return null;
-        return ((FluidLogChunk)chunk).fl$getFluid(x & 0xf, y, z & 0xf);
+        return ((FLChunk)chunk).fl$getFluid(x & 0xf, y, z & 0xf);
     }
+
+    // endregion
+
+    // region FLWorld
+
+
+    @Override
+    public void fl$scheduleFluidUpdate(int x, int y, int z, Block block, int delay) {}
+
+    @Override
+    public void fl$insertUpdate(int x, int y, int z, Block block, int delay, int priority) {}
+
+    @Override
+    public @Nullable List<NextTickListEntry> fl$getPendingFluidUpdates(@NotNull Chunk chunk, boolean remove) {
+        return null;
+    }
+
+    // endregion
 }

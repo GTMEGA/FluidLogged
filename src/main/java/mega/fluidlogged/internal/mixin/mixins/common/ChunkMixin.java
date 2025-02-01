@@ -22,9 +22,9 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.internal.FluidLogChunk;
-import mega.fluidlogged.internal.FluidLogSubChunk;
-import mega.fluidlogged.internal.IFluid;
+import mega.fluidlogged.internal.mixin.hook.FLChunk;
+import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
+import mega.fluidlogged.api.IFluid;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,7 +34,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(Chunk.class)
-public abstract class ChunkMixin implements FluidLogChunk {
+public abstract class ChunkMixin implements FLChunk {
     @Shadow public abstract ExtendedBlockStorage[] getBlockStorageArray();
 
     @Shadow public boolean isModified;
@@ -51,7 +51,7 @@ public abstract class ChunkMixin implements FluidLogChunk {
         val subChunk = subChunks[Y];
         if (subChunk == null)
             return null;
-        return ((FluidLogSubChunk)subChunk).fl$getFluid(x, y & 0xf, z);
+        return ((FLSubChunk)subChunk).fl$getFluid(x, y & 0xf, z);
     }
 
     @Override
@@ -66,7 +66,7 @@ public abstract class ChunkMixin implements FluidLogChunk {
         val subChunk = subChunks[Y];
         if (subChunk == null)
             return;
-        ((FluidLogSubChunk)subChunk).fl$setFluid(x, y & 0xf, z, fluid);
+        ((FLSubChunk)subChunk).fl$setFluid(x, y & 0xf, z, fluid);
         isModified = true;
     }
 }

@@ -22,8 +22,8 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.internal.FluidLogSubChunk;
-import mega.fluidlogged.internal.IFluid;
+import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
+import mega.fluidlogged.api.IFluid;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.Unique;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class ExtendedBlockStorageMixin implements FluidLogSubChunk {
+public abstract class ExtendedBlockStorageMixin implements FLSubChunk {
     @Unique
     private IFluid[] fl$fluidLog;
 

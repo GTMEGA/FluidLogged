@@ -20,11 +20,12 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal;
+package mega.fluidlogged.internal.mixin.hook;
 
+import mega.fluidlogged.api.IFluid;
 import org.jetbrains.annotations.Nullable;
 
-public interface FluidLogSubChunk {
+public interface FLSubChunk {
     IFluid[] fl$getFluidLog();
     void fl$setFluidLog(IFluid[] fluidLog);
     @Nullable IFluid fl$getFluid(int x, int y, int z);

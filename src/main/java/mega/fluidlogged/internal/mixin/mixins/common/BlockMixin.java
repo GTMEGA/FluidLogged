@@ -22,26 +22,38 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.internal.mixin.hook.FLPacket;
-import mega.fluidlogged.api.IFluid;
-import org.jetbrains.annotations.Nullable;
+import lombok.val;
+import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
+import mega.fluidlogged.internal.mixin.hook.FLWorld;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 
-import net.minecraft.network.play.server.S23PacketBlockChange;
+import net.minecraft.block.Block;
+import net.minecraft.world.World;
 
-@Mixin(S23PacketBlockChange.class)
-public abstract class S23PacketBlockChangeMixin implements FLPacket {
-    @Unique
-    private IFluid wl$fluidLog;
+import java.util.Random;
 
+@Mixin(Block.class)
+public abstract class BlockMixin implements FLBlockRoot {
     @Override
-    public @Nullable IFluid wl$getFluidLog() {
-        return wl$fluidLog;
+    public void fl$updateTick(World world, int x, int y, int z, Random random) {
+        val fluid = ((FLBlockAccess) world).fl$getFluid(x, y, z);
+        if (fluid == null) {
+            return;
+        }
+        fluid.simulate(world, x, y, z, random);
     }
 
     @Override
-    public void wl$setFluidLog(@Nullable IFluid fluid) {
-        this.wl$fluidLog = fluid;
+    public void fl$onNeighborChange(World world, int x, int y, int z, Block neighbor) {
+        val fluid = ((FLBlockAccess) world).fl$getFluid(x, y, z);
+        if (fluid == null) {
+            return;
+        }
+        val block = fluid.toBlock();
+        if (block == null) {
+            return;
+        }
+        ((FLWorld) world).fl$scheduleFluidUpdate(x, y, z, (Block) (Object) this, block.tickRate(world));
     }
 }

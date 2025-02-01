@@ -23,15 +23,17 @@
 package mega.fluidlogged.internal.core;
 
 import lombok.val;
-import mega.fluidlogged.internal.FluidLogBlockAccess;
+import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 
 import net.minecraft.client.renderer.RenderBlocks;
 
 @SuppressWarnings("unused") // Called by ASM
 public class ASMHooks {
+    public static final int BIT_NEXT_PASS = 0b1;
+    public static final int BIT_RENDERED_ANYTHING = 0b10;
     public static int drawFluidLogged(RenderBlocks renderBlocks, int x, int y, int z, int pass) {
 
-        val fluid = ((FluidLogBlockAccess)renderBlocks.blockAccess).fl$getFluid(x, y, z);
+        val fluid = ((FLBlockAccess)renderBlocks.blockAccess).fl$getFluid(x, y, z);
         val fluidBlock = fluid == null ? null : fluid.toBlock();
 
         int result = 0;

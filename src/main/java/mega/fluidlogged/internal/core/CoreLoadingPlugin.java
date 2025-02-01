@@ -28,6 +28,7 @@ package mega.fluidlogged.internal.core;
 
 import mega.fluidlogged.Tags;
 
+import cpw.mods.fml.relauncher.FMLLaunchHandler;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;
@@ -36,7 +37,11 @@ import java.util.Map;
 public class CoreLoadingPlugin implements IFMLLoadingPlugin {
     @Override
     public String[] getASMTransformerClass() {
-        return new String[]{Tags.ROOT_PKG + ".internal.core.FluidLogTransformer"};
+        if (FMLLaunchHandler.side().isClient()) {
+            return new String[]{Tags.ROOT_PKG + ".internal.core.FluidLogTransformer"};
+        } else {
+            return new String[0];
+        }
     }
 
     @Override

@@ -23,6 +23,11 @@
 package mega.fluidlogged.internal;
 
 import lombok.val;
+import mega.fluidlogged.api.FLBlock;
+import mega.fluidlogged.api.IFluid;
+import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
+import mega.fluidlogged.internal.mixin.hook.FLWorld;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFence;
@@ -38,9 +43,9 @@ import net.minecraft.world.World;
 public class FLUtil {
     public static Block getFluidOrBlock(IBlockAccess access, int x, int y, int z) {
         val b = access.getBlock(x, y, z);
-        if (!(access instanceof FluidLogBlockAccess))
+        if (!(access instanceof FLBlockAccess))
             return b;
-        val fluid = ((FluidLogBlockAccess)access).fl$getFluid(x, y, z);
+        val fluid = ((FLBlockAccess)access).fl$getFluid(x, y, z);
         if (fluid == null)
             return b;
         val block = fluid.toBlock();
@@ -50,9 +55,9 @@ public class FLUtil {
     }
 
     public static int getFluidMeta(IBlockAccess access, int x, int y, int z) {
-        if (!(access instanceof FluidLogBlockAccess))
+        if (!(access instanceof FLBlockAccess))
             return access.getBlockMetadata(x, y, z);
-        val fluid = ((FluidLogBlockAccess)access).fl$getFluid(x, y, z);
+        val fluid = ((FLBlockAccess)access).fl$getFluid(x, y, z);
         if (fluid == null)
             return access.getBlockMetadata(x, y, z);
         val block = fluid.toBlock();
@@ -62,8 +67,8 @@ public class FLUtil {
     }
 
     public static boolean isFluidLoggable(World world, int x, int y, int z, Block block, IFluid fluid) {
-        if (block instanceof FluidLogBlock) {
-            return ((FluidLogBlock) block).fl$isFluidLoggable(world, x, y, z, fluid);
+        if (block instanceof FLBlock) {
+            return ((FLBlock) block).fl$isFluidLoggable(world, x, y, z, fluid);
         } else if (block instanceof BlockFence) {
             return true;
         } else if (block instanceof BlockStairs) {
@@ -80,13 +85,15 @@ public class FLUtil {
             return null;
         }
         if (bucket.isFull == Blocks.air) {
-            val wlWorld = (FluidLogBlockAccess) world;
+            val wlWorld = (FLBlockAccess) world;
             val fluid = wlWorld.fl$getFluid(x, y, z);
             if (fluid != null) {
                 val newBucket = fluid.toBucket();
                 if (newBucket == null)
                     return null;
                 wlWorld.fl$setFluid(x, y, z, null);
+                val block = world.getBlock(x, y, z);
+                world.notifyBlocksOfNeighborChange(x, y, z, block);
                 world.markBlockForUpdate(x, y, z);
                 return new ItemStack(newBucket);
             }
@@ -97,12 +104,15 @@ public class FLUtil {
         if (fluid == null) {
             return null;
         }
-        val isFluidLoggable = isFluidLoggable(world, x, y, z, world.getBlock(x, y, z), fluid);
-        val wlWorld = (FluidLogBlockAccess) world;
+        val block = world.getBlock(x, y, z);
+        val isFluidLoggable = isFluidLoggable(world, x, y, z, block, fluid);
+        val wlWorld = (FLBlockAccess) world;
         if (!isFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
             return null;
         }
         wlWorld.fl$setFluid(x, y, z, fluid);
+        fluid.onFluidPlacedInto(world, x, y, z, block);
+        world.notifyBlocksOfNeighborChange(x, y, z, block);
         world.markBlockForUpdate(x, y, z);
         return new ItemStack(Items.bucket);
     }

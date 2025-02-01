@@ -20,10 +20,21 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal;
+package mega.fluidlogged.internal.mixin.hook;
 
-import net.minecraft.world.World;
+import lombok.val;
+import mega.fluidlogged.api.IFluid;
+import org.jetbrains.annotations.Nullable;
 
-public interface FluidLogBlock {
-    boolean fl$isFluidLoggable(World world, int x, int y, int z, IFluid fluid);
+public interface FLBlockAccess {
+    default boolean fl$isFluidLogged(int x, int y, int z, @Nullable IFluid fluid) {
+        val fluidInChunk = fl$getFluid(x, y, z);
+        if (fluidInChunk == null)
+            return false;
+        if (fluid == null)
+            return true;
+        return fluid.equals(fluidInChunk);
+    }
+    void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid);
+    @Nullable IFluid fl$getFluid(int x, int y, int z);
 }

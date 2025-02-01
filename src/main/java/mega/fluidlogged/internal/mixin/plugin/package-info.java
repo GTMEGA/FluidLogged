@@ -20,11 +20,7 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal;
+@ApiStatus.Internal
+package mega.fluidlogged.internal.mixin.plugin;
 
-import org.jetbrains.annotations.Nullable;
-
-public interface FluidLogChunk {
-    @Nullable IFluid fl$getFluid(int x, int y, int z);
-    void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid);
-}
+import org.jetbrains.annotations.ApiStatus;
