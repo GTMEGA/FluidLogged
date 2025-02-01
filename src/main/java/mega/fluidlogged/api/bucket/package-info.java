@@ -19,26 +19,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
+/**
+ * DO NOT USE THIS YET, NON-FINAL API!
+ */
+@ApiStatus.Experimental
+package mega.fluidlogged.api.bucket;
 
-package mega.fluidlogged.internal.mixin.plugin;
-
-import com.falsepattern.lib.mixin.ITargetedMod;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import java.util.function.Predicate;
-
-import static com.falsepattern.lib.mixin.ITargetedMod.PredicateHelpers.contains;
-
-@RequiredArgsConstructor
-public enum TargetedMod implements ITargetedMod {
-    COFHCORE("CoFH Core", false, contains("cofhcore")),
-    ;
-
-    @Getter
-    private final String modName;
-    @Getter
-    private final boolean loadInDevelopment;
-    @Getter
-    private final Predicate<String> condition;
-}
+import org.jetbrains.annotations.ApiStatus;

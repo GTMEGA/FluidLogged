@@ -26,17 +26,25 @@ import lombok.val;
 import mega.fluidlogged.api.FLBlock;
 import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.BlockFence;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemBucket;
+import net.minecraft.block.BlockStaticLiquid;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.FillBucketEvent;
+import cpw.mods.fml.common.eventhandler.Event;
+
+import java.util.function.Consumer;
 
 public class FLUtil {
     public static Block getFluidOrBlock(IBlockAccess access, int x, int y, int z) {
@@ -77,41 +85,42 @@ public class FLUtil {
         return false;
     }
 
-    public static ItemStack doFluidLog(ItemStack stack, World world, int x, int y, int z) {
-        val bucket = (ItemBucket) stack.getItem();
-        if (bucket == null) {
-            return null;
-        }
-        if (bucket.isFull == Blocks.air) {
-            val wlWorld = (FLBlockAccess) world;
-            val fluid = wlWorld.fl$getFluid(x, y, z);
-            if (fluid != null) {
-                val newBucket = fluid.toBucket();
-                if (newBucket == null)
-                    return null;
-                wlWorld.fl$setFluid(x, y, z, null);
-                val block = world.getBlock(x, y, z);
-                world.notifyBlocksOfNeighborChange(x, y, z, block);
-                world.markBlockForUpdate(x, y, z);
-                return new ItemStack(newBucket);
-            }
-            return null;
+    public static void fireBucketEvent(ItemStack item, World world, EntityPlayer player, Consumer<ItemStack> resultCallback, MovingObjectPosition pos) {
+        val event = new FillBucketEvent(player, item, world, pos);
+        if (MinecraftForge.EVENT_BUS.post(event)) {
+            resultCallback.accept(item);
+            return;
         }
 
-        val fluid = IFluid.fromBucketBlock(bucket.isFull);
-        if (fluid == null) {
-            return null;
+        if (event.getResult() != Event.Result.ALLOW) {
+            return;
         }
-        val block = world.getBlock(x, y, z);
-        val isFluidLoggable = isFluidLoggable(world, x, y, z, block, fluid);
-        val wlWorld = (FLBlockAccess) world;
-        if (!isFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
-            return null;
+
+        if (player.capabilities.isCreativeMode) {
+            resultCallback.accept(item);
+            return;
         }
-        wlWorld.fl$setFluid(x, y, z, fluid);
-        fluid.onFluidPlacedInto(world, x, y, z, block);
-        world.notifyBlocksOfNeighborChange(x, y, z, block);
-        world.markBlockForUpdate(x, y, z);
-        return new ItemStack(Items.bucket);
+
+        if (--item.stackSize <= 0) {
+            resultCallback.accept(event.result);
+            return;
+        }
+
+        if (!player.inventory.addItemStackToInventory(event.result)) {
+            player.dropPlayerItemWithRandomChoice(event.result, false);
+        }
+
+        resultCallback.accept(item);
+    }
+
+    @NotNull
+    public static IFluid resolveVanillaFluid(Block block) {
+        if (block instanceof BlockDynamicLiquid) {
+            val staticLiquid = Block.getBlockById(Block.getIdFromBlock(block) + 1);
+            if (staticLiquid instanceof BlockStaticLiquid && staticLiquid.getMaterial() == block.getMaterial()) {
+                return new IFluid.VanillaFluid((BlockLiquid) staticLiquid);
+            }
+        }
+        return new IFluid.VanillaFluid((BlockLiquid) block);
     }
 }

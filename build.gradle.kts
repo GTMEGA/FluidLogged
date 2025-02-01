@@ -28,9 +28,11 @@ minecraft_fp {
 
 repositories {
     exclusive(mavenpattern(), "com.falsepattern")
+    cursemavenEX()
 }
 
 dependencies {
     implementationSplit("com.falsepattern:falsepatternlib-mc1.7.10:1.5.9")
     implementationSplit("com.falsepattern:chunkapi-mc1.7.10:0.6.1")
+    compileOnly(deobfCurse("cofhcore-69162:2388750"))
 }

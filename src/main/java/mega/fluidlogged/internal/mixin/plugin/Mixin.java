@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
+import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.require;
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
@@ -48,7 +49,12 @@ public enum Mixin implements IMixin {
 
     client_ActiveRenderInfoMixin(Side.CLIENT, always(), "ActiveRenderInfoMixin"),
     client_BlockLiquidMixin(Side.CLIENT, always(), "BlockLiquidMixin"),
+    client_RenderBlockFluidMixin(Side.CLIENT, always(), "RenderBlockFluidMixin"),
     client_RenderBlocksMixin(Side.CLIENT, always(), "RenderBlocksMixin"),
+
+    //region compat
+    common_compat_cofh_ItemBucketMixin(Side.COMMON, require(TargetedMod.COFHCORE), "compat.cofh.ItemBucketMixin")
+    //endregion
     ;
     // @formatter:on
 

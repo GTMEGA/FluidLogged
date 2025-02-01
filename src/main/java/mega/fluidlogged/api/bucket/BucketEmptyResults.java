@@ -20,25 +20,16 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal.mixin.plugin;
+package mega.fluidlogged.api.bucket;
 
-import com.falsepattern.lib.mixin.ITargetedMod;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
+import mega.fluidlogged.api.IFluid;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Predicate;
+import net.minecraft.item.ItemStack;
 
-import static com.falsepattern.lib.mixin.ITargetedMod.PredicateHelpers.contains;
-
-@RequiredArgsConstructor
-public enum TargetedMod implements ITargetedMod {
-    COFHCORE("CoFH Core", false, contains("cofhcore")),
-    ;
-
-    @Getter
-    private final String modName;
-    @Getter
-    private final boolean loadInDevelopment;
-    @Getter
-    private final Predicate<String> condition;
+@Data
+public final class BucketEmptyResults {
+    private final @NotNull ItemStack item;
+    private final @NotNull IFluid fluid;
 }

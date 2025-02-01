@@ -20,31 +20,33 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal;
+package mega.fluidlogged.api.bucket;
 
-import com.falsepattern.chunk.api.DataRegistry;
-import mega.fluidlogged.Tags;
-import mega.fluidlogged.api.bucket.BucketDriver;
+import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.driver.FLBucketDriver;
-import mega.fluidlogged.internal.driver.drivers.ForgeDriver;
-import mega.fluidlogged.internal.driver.drivers.MinecraftDriver;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import net.minecraftforge.common.MinecraftForge;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
+import net.minecraft.item.ItemStack;
 
-@Mod(modid = Tags.MOD_ID,
-     version = Tags.MOD_VERSION,
-     name = Tags.MOD_NAME,
-     acceptedMinecraftVersions = "[1.7.10]",
-     dependencies = "required-after:chunkapi@[0.6.0,);")
-public class FluidLogged {
+public interface BucketDriver {
+    @ApiStatus.OverrideOnly
+    interface Query extends BucketDriver {
+        @Nullable BucketState queryState(@NotNull ItemStack bucket);
+    }
 
-    @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
-        DataRegistry.registerDataManager(new FLManager());
-        MinecraftForge.EVENT_BUS.register(FLBucketDriver.INSTANCE);
-        BucketDriver.register(new MinecraftDriver());
-        BucketDriver.register(new ForgeDriver());
+    @ApiStatus.OverrideOnly
+    interface Fill extends BucketDriver {
+        @Nullable ItemStack fillBucket(@NotNull IFluid fluid, @NotNull ItemStack bucket);
+    }
+
+    @ApiStatus.OverrideOnly
+    interface Empty extends BucketDriver {
+        @Nullable BucketEmptyResults emptyBucket(@NotNull ItemStack bucket);
+    }
+
+    static void register(@NotNull BucketDriver driver) {
+        FLBucketDriver.INSTANCE.registerDriver(driver);
     }
 }

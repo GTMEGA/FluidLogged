@@ -42,4 +42,9 @@ public class MixinPlugin implements IMixinPlugin {
     public IMixin[] getMixinEnumValues() {
         return Mixin.values();
     }
+
+    @Override
+    public boolean useNewFindJar() {
+        return true;
+    }
 }

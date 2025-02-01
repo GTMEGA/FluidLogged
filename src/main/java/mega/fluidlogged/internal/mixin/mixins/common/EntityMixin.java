@@ -67,6 +67,7 @@ public abstract class EntityMixin {
     @Redirect(method = "isInsideOfMaterial",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraftforge/fluids/IFluidBlock;getFilledPercentage(Lnet/minecraft/world/World;III)F"),
+              remap = false,
               require = 1)
     private float hackFilledPercentage(IFluidBlock instance, World world, int x, int y, int z) {
         // TODO
