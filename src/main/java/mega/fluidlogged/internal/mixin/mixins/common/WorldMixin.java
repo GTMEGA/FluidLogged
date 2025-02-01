@@ -22,6 +22,8 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
@@ -41,12 +43,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.world.NextTickListEntry;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
 
-import java.util.Collections;
 import java.util.List;
 
 @Mixin(World.class)
@@ -107,6 +109,62 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
     private void onNeighborFluidChange(Block instance, World worldIn, int x, int y, int z, Block neighbor, Operation<Void> original) {
         ((FLBlockRoot)instance).fl$onNeighborChange(worldIn, x, y, z, neighbor);
         original.call(instance, worldIn, x, y, z, neighbor);
+    }
+
+    @WrapOperation(method = "handleMaterialAcceleration",
+                   at = @At(value = "INVOKE",
+                            target = "Lnet/minecraft/world/World;getBlock(III)Lnet/minecraft/block/Block;"),
+                   require = 1)
+    private Block accelerationGetBlock(World world, int x, int y, int z, Operation<Block> original, @Share("logged") LocalBooleanRef logged) {
+        val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
+        val fluidBlock = fluid == null ? null : fluid.toBlock();
+        if (fluidBlock != null) {
+            logged.set(true);
+            return fluidBlock;
+        }
+        logged.set(false);
+        return original.call(world, x, y, z);
+    }
+
+    @WrapOperation(method = "handleMaterialAcceleration",
+                   at = @At(value = "INVOKE",
+                            target = "Lnet/minecraft/world/World;getBlockMetadata(III)I"),
+                   require = 1)
+    private int accelerationGetMeta(World world, int x, int y, int z, Operation<Integer> original, @Share("logged") LocalBooleanRef logged) {
+        if (logged.get()) {
+            return 0;
+        }
+        return original.call(world, x, y, z);
+    }
+
+    @WrapOperation(method = "isAnyLiquid",
+                   at = @At(value = "INVOKE",
+                            target = "Lnet/minecraft/world/World;getBlock(III)Lnet/minecraft/block/Block;"),
+                   require = 1)
+    private Block isAnyLiquidGetBlock(World world, int x, int y, int z, Operation<Block> original) {
+        val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
+        val fluidBlock = fluid == null ? null : fluid.toBlock();
+        if (fluidBlock != null) {
+            return fluidBlock;
+        }
+        return original.call(world, x, y, z);
+    }
+
+    @WrapOperation(method = "isMaterialInBB",
+                   at = @At(value = "INVOKE",
+                            target = "Lnet/minecraft/world/World;getBlock(III)Lnet/minecraft/block/Block;"),
+                   require = 1)
+    private Block isMaterialInBBGetBlock(World world, int x, int y, int z, Operation<Block> original, @Local(argsOnly = true) Material material) {
+        val ogBlock = original.call(world, x, y, z);
+        if (ogBlock.getMaterial() == material) {
+            return ogBlock;
+        }
+        val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
+        val fluidBlock = fluid == null ? null : fluid.toBlock();
+        if (fluidBlock != null) {
+            return fluidBlock;
+        }
+        return ogBlock;
     }
 
     // endregion

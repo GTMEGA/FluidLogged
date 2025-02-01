@@ -40,11 +40,13 @@ public enum Mixin implements IMixin {
     common_BlockMixin(Side.COMMON, always(), "BlockMixin"),
     common_ChunkCacheMixin(Side.COMMON, always(), "ChunkCacheMixin"),
     common_ChunkMixin(Side.COMMON, always(), "ChunkMixin"),
+    common_EntityMixin(Side.COMMON, always(), "EntityMixin"),
     common_ExtendedBlockStorageMixin(Side.COMMON, always(), "ExtendedBlockStorageMixin"),
     common_S23PacketBlockChangeMixin(Side.COMMON, always(), "S23PacketBlockChangeMixin"),
     common_WorldMixin(Side.COMMON, always(), "WorldMixin"),
     common_WorldServerMixin(Side.COMMON, always(), "WorldServerMixin"),
 
+    client_ActiveRenderInfoMixin(Side.CLIENT, always(), "ActiveRenderInfoMixin"),
     client_BlockLiquidMixin(Side.CLIENT, always(), "BlockLiquidMixin"),
     client_RenderBlocksMixin(Side.CLIENT, always(), "RenderBlocksMixin"),
     ;
