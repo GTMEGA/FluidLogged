@@ -20,7 +20,7 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal.driver.drivers;
+package mega.fluidlogged.internal.bucket.drivers;
 
 import lombok.val;
 import mega.fluidlogged.api.IFluid;
@@ -30,45 +30,41 @@ import mega.fluidlogged.api.bucket.BucketState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
-public class MinecraftDriver implements BucketDriver.Fill, BucketDriver.Empty, BucketDriver.Query {
+public class ForgeBucketDriver implements BucketDriver.Fill, BucketDriver.Empty, BucketDriver.Query {
     @Override
-    public @Nullable ItemStack fillBucket(@NotNull IFluid fluid, @NotNull ItemStack bucket) {
-        val block = fluid.toBlock();
-        if (block == Blocks.flowing_water || block == Blocks.water) {
-            return new ItemStack(Items.water_bucket);
-        } else if (block == Blocks.flowing_lava || block == Blocks.lava) {
-            return new ItemStack(Items.lava_bucket);
+    public @Nullable BucketEmptyResults emptyBucket(@NotNull ItemStack bucket) {
+        if (!FluidContainerRegistry.isBucket(bucket)) {
+            return null;
         }
-        return null;
+        val forgeFluid = FluidContainerRegistry.getFluidForFilledItem(bucket);
+        val fluid = new IFluid.ForgeFluid(forgeFluid.getFluid());
+        val fluidBlock = fluid.toBlock();
+        if (fluidBlock == null) {
+            return null;
+        }
+        val drained = FluidContainerRegistry.drainFluidContainer(bucket);
+        return new BucketEmptyResults(drained, fluid);
     }
 
     @Override
-    public @Nullable BucketEmptyResults emptyBucket(@NotNull ItemStack bucket) {
-        val item = bucket.getItem();
-        if (!(item instanceof ItemBucket)) {
+    public @Nullable ItemStack fillBucket(@NotNull IFluid fluid, @NotNull ItemStack bucket) {
+        if (!(fluid instanceof IFluid.ForgeFluid)) {
             return null;
         }
-        val block = ((ItemBucket) item).isFull;
-        val fluid = IFluid.fromBucketBlock(block);
-        if (fluid == null) {
-            return null;
-        }
-        return new BucketEmptyResults(new ItemStack(Items.bucket), fluid);
+        val ff = ((IFluid.ForgeFluid)fluid);
+        return FluidContainerRegistry.fillFluidContainer(new FluidStack(ff.fluid, 1000), bucket);
     }
 
     @Override
     public @Nullable BucketState queryState(@NotNull ItemStack bucket) {
-        val theItem = bucket.getItem();
-        if (!(theItem instanceof ItemBucket)) {
+        if (!FluidContainerRegistry.isBucket(bucket)) {
             return null;
         }
-        val bucketItem = (ItemBucket) theItem;
-        if (bucketItem.isFull == Blocks.air) {
+        if (FluidContainerRegistry.isEmptyContainer(bucket)) {
             return BucketState.Empty;
         } else {
             return BucketState.Filled;

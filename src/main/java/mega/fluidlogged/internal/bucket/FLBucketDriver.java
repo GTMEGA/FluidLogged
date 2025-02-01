@@ -20,14 +20,14 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal.driver;
+package mega.fluidlogged.internal.bucket;
 
 import lombok.val;
 import mega.fluidlogged.api.bucket.BucketDriver;
 import mega.fluidlogged.api.bucket.BucketEmptyResults;
 import mega.fluidlogged.api.bucket.BucketState;
 import mega.fluidlogged.api.IFluid;
-import mega.fluidlogged.internal.FLUtil;
+import mega.fluidlogged.internal.world.FLWorldDriver;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 
 import net.minecraft.item.ItemStack;
@@ -132,7 +132,8 @@ public class FLBucketDriver {
         val emptyBucket = result.getItem();
         val fluid = result.getFluid();
         val block = world.getBlock(x, y, z);
-        val isFluidLoggable = FLUtil.isFluidLoggable(world, x, y, z, block, fluid);
+        val meta = world.getBlockMetadata(x, y, z);
+        val isFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
         val wlWorld = (FLBlockAccess) world;
         if (!isFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
             return null;

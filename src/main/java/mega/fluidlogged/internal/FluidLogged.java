@@ -25,9 +25,11 @@ package mega.fluidlogged.internal;
 import com.falsepattern.chunk.api.DataRegistry;
 import mega.fluidlogged.Tags;
 import mega.fluidlogged.api.bucket.BucketDriver;
-import mega.fluidlogged.internal.driver.FLBucketDriver;
-import mega.fluidlogged.internal.driver.drivers.ForgeDriver;
-import mega.fluidlogged.internal.driver.drivers.MinecraftDriver;
+import mega.fluidlogged.api.world.WorldDriver;
+import mega.fluidlogged.internal.bucket.FLBucketDriver;
+import mega.fluidlogged.internal.bucket.drivers.ForgeBucketDriver;
+import mega.fluidlogged.internal.bucket.drivers.MinecraftBucketDriver;
+import mega.fluidlogged.internal.world.drivers.MinecraftWorldDriver;
 
 import net.minecraftforge.common.MinecraftForge;
 import cpw.mods.fml.common.Mod;
@@ -44,7 +46,8 @@ public class FluidLogged {
     public void init(FMLInitializationEvent event) {
         DataRegistry.registerDataManager(new FLManager());
         MinecraftForge.EVENT_BUS.register(FLBucketDriver.INSTANCE);
-        BucketDriver.register(new MinecraftDriver());
-        BucketDriver.register(new ForgeDriver());
+        BucketDriver.register(new MinecraftBucketDriver());
+        BucketDriver.register(new ForgeBucketDriver());
+        WorldDriver.register(new MinecraftWorldDriver());
     }
 }

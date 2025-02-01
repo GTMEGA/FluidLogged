@@ -20,33 +20,31 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.api.bucket;
+package mega.fluidlogged.internal.world;
 
+import lombok.val;
 import mega.fluidlogged.api.IFluid;
-import mega.fluidlogged.internal.bucket.FLBucketDriver;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import mega.fluidlogged.api.world.WorldDriver;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.block.Block;
 
-public interface BucketDriver {
-    @ApiStatus.OverrideOnly
-    interface Query extends BucketDriver {
-        @Nullable BucketState queryState(@NotNull ItemStack bucket);
+import java.util.ArrayList;
+import java.util.List;
+
+public class FLWorldDriver {
+    public static final FLWorldDriver INSTANCE = new FLWorldDriver();
+    private final List<WorldDriver> drivers = new ArrayList<>();
+
+    public void registerDriver(WorldDriver driver) {
+        drivers.add(driver);
     }
 
-    @ApiStatus.OverrideOnly
-    interface Fill extends BucketDriver {
-        @Nullable ItemStack fillBucket(@NotNull IFluid fluid, @NotNull ItemStack bucket);
-    }
-
-    @ApiStatus.OverrideOnly
-    interface Empty extends BucketDriver {
-        @Nullable BucketEmptyResults emptyBucket(@NotNull ItemStack bucket);
-    }
-
-    static void register(@NotNull BucketDriver driver) {
-        FLBucketDriver.INSTANCE.registerDriver(driver);
+    public boolean canBeFluidLogged(Block block, int meta, IFluid fluid) {
+        for (val driver: drivers) {
+            if (driver.canBeFluidLogged(block, meta, fluid)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

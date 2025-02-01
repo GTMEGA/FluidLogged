@@ -23,17 +23,13 @@
 package mega.fluidlogged.internal;
 
 import lombok.val;
-import mega.fluidlogged.api.FLBlock;
 import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
-import net.minecraft.block.BlockFence;
 import net.minecraft.block.BlockLiquid;
-import net.minecraft.block.BlockSlab;
-import net.minecraft.block.BlockStairs;
 import net.minecraft.block.BlockStaticLiquid;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -70,19 +66,6 @@ public class FLUtil {
         if (block == null)
             return access.getBlockMetadata(x, y, z);
         return 0;
-    }
-
-    public static boolean isFluidLoggable(World world, int x, int y, int z, Block block, IFluid fluid) {
-        if (block instanceof FLBlock) {
-            return ((FLBlock) block).fl$isFluidLoggable(world, x, y, z, fluid);
-        } else if (block instanceof BlockFence) {
-            return true;
-        } else if (block instanceof BlockStairs) {
-            return true;
-        } else if (block instanceof BlockSlab) {
-            return !block.isOpaqueCube();
-        }
-        return false;
     }
 
     public static void fireBucketEvent(ItemStack item, World world, EntityPlayer player, Consumer<ItemStack> resultCallback, MovingObjectPosition pos) {

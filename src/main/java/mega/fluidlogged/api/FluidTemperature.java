@@ -22,8 +22,8 @@
 
 package mega.fluidlogged.api;
 
-import net.minecraft.world.World;
-
-public interface FLBlock {
-    boolean fl$isFluidLoggable(World world, int x, int y, int z, IFluid fluid);
+public enum FluidTemperature {
+    Cryogenic,
+    Water,
+    Lava
 }

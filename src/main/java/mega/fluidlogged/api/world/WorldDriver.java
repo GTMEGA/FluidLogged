@@ -20,33 +20,18 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.api.bucket;
+package mega.fluidlogged.api.world;
 
 import mega.fluidlogged.api.IFluid;
-import mega.fluidlogged.internal.bucket.FLBucketDriver;
-import org.jetbrains.annotations.ApiStatus;
+import mega.fluidlogged.internal.world.FLWorldDriver;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.block.Block;
 
-public interface BucketDriver {
-    @ApiStatus.OverrideOnly
-    interface Query extends BucketDriver {
-        @Nullable BucketState queryState(@NotNull ItemStack bucket);
-    }
+public interface WorldDriver {
+    boolean canBeFluidLogged(Block block, int meta, IFluid fluid);
 
-    @ApiStatus.OverrideOnly
-    interface Fill extends BucketDriver {
-        @Nullable ItemStack fillBucket(@NotNull IFluid fluid, @NotNull ItemStack bucket);
-    }
-
-    @ApiStatus.OverrideOnly
-    interface Empty extends BucketDriver {
-        @Nullable BucketEmptyResults emptyBucket(@NotNull ItemStack bucket);
-    }
-
-    static void register(@NotNull BucketDriver driver) {
-        FLBucketDriver.INSTANCE.registerDriver(driver);
+    static void register(@NotNull WorldDriver driver) {
+        FLWorldDriver.INSTANCE.registerDriver(driver);
     }
 }

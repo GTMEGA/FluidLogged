@@ -29,7 +29,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import lombok.val;
 import mega.fluidlogged.api.IFluid;
-import mega.fluidlogged.internal.FLUtil;
+import mega.fluidlogged.internal.world.FLWorldDriver;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
 import mega.fluidlogged.internal.mixin.hook.FLChunk;
@@ -60,6 +60,8 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
 
     @Shadow public abstract boolean setBlock(int x, int y, int z, Block blockType);
 
+    @Shadow public abstract int getBlockMetadata(int x, int y, int z);
+
     @Inject(method = "setBlockToAir",
             at = @At("HEAD"),
             cancellable = true,
@@ -86,13 +88,13 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
                                       argsOnly = true) int wZ) {
         val fl$chunk = (FLChunk) chunk;
         val currentFluid = fl$chunk.fl$getFluid(cX, y, cZ);
-        boolean isFluidLoggable = FLUtil.isFluidLoggable((World)(Object)this, wX, y, wZ, block, currentFluid);
-        if (!isFluidLoggable) {
+        if (!FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, currentFluid)) {
             fl$chunk.fl$setFluid(cX, y, cZ, null);
         } else {
-            if (!FLUtil.isFluidLoggable((World)(Object)this, wX, y, wZ, originalBlock, currentFluid)) {
+            val originalMeta = chunk.getBlockMetadata(cX, y, cZ);
+            if (!FLWorldDriver.INSTANCE.canBeFluidLogged(originalBlock, originalMeta, currentFluid)) {
                 val fluidFromBlock = IFluid.fromWorldBlock((World)(Object)this, wX, y, wZ, originalBlock);
-                if (fluidFromBlock != null && FLUtil.isFluidLoggable((World)(Object)this, wX, y, wZ, block, fluidFromBlock)) {
+                if (fluidFromBlock != null && FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluidFromBlock)) {
                     fl$chunk.fl$setFluid(cX, y, cZ, fluidFromBlock);
                 } else {
                     fl$chunk.fl$setFluid(cX, y, cZ, null);

@@ -52,9 +52,9 @@ public interface IFluid {
 
     @Nullable Block toBlock();
 
-    void simulate(World world, int x, int y, int z, Random random);
+    void simulate(@NotNull World world, int x, int y, int z, @NotNull Random random);
 
-    void onFluidPlacedInto(World world, int x, int y, int z, Block block);
+    void onFluidPlacedInto(@NotNull World world, int x, int y, int z, @NotNull Block block);
 
     static @Nullable IFluid deserialize(byte type, int id) {
         switch (type) {
@@ -67,7 +67,7 @@ public interface IFluid {
         }
     }
 
-    static @Nullable IFluid fromBucketBlock(Block block) {
+    static @Nullable IFluid fromBucketBlock(@NotNull Block block) {
         if (block instanceof BlockLiquid) {
             return FLUtil.resolveVanillaFluid(block);
         } else if (block instanceof BlockFluidBase) {
@@ -78,7 +78,7 @@ public interface IFluid {
         }
     }
 
-    static @Nullable IFluid fromWorldBlock(World world, int x, int y, int z, Block block) {
+    static @Nullable IFluid fromWorldBlock(@NotNull World world, int x, int y, int z, @NotNull Block block) {
         if (block instanceof BlockLiquid) {
             val meta = world.getBlockMetadata(x, y, z);
             if (meta != 0) {
@@ -118,11 +118,11 @@ public interface IFluid {
 
 
         @Override
-        public void simulate(World world, int x, int y, int z, Random random) {
+        public void simulate(@NotNull World world, int x, int y, int z, @NotNull Random random) {
             VanillaFluidSim.simulate(this, world, x, y, z, random);
         }
 
-        public void onFluidPlacedInto(World world, int x, int y, int z, Block block) {
+        public void onFluidPlacedInto(@NotNull World world, int x, int y, int z, @NotNull Block block) {
             ((FLWorld)world).fl$scheduleFluidUpdate(x, y, z, block, liquid.tickRate(world));
         }
 
@@ -162,12 +162,12 @@ public interface IFluid {
         }
 
         @Override
-        public void simulate(World world, int x, int y, int z, Random random) {
+        public void simulate(@NotNull World world, int x, int y, int z, @NotNull Random random) {
             // TODO
         }
 
         @Override
-        public void onFluidPlacedInto(World world, int x, int y, int z, Block block) {
+        public void onFluidPlacedInto(@NotNull World world, int x, int y, int z, @NotNull Block block) {
             // TODO
         }
 
