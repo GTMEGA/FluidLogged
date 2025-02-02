@@ -23,13 +23,13 @@
 package mega.fluidlogged.api.bucket;
 
 import lombok.Data;
-import mega.fluidlogged.api.IFluid;
 import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 
 @Data
 public final class BucketEmptyResults {
     private final @NotNull ItemStack item;
-    private final @NotNull IFluid fluid;
+    private final @NotNull Fluid fluid;
 }

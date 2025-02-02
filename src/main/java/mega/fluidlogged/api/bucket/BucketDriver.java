@@ -22,13 +22,13 @@
 
 package mega.fluidlogged.api.bucket;
 
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.bucket.FLBucketDriver;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 
 public interface BucketDriver {
     @ApiStatus.OverrideOnly
@@ -38,7 +38,7 @@ public interface BucketDriver {
 
     @ApiStatus.OverrideOnly
     interface Fill extends BucketDriver {
-        @Nullable ItemStack fillBucket(@NotNull IFluid fluid, @NotNull ItemStack bucket);
+        @Nullable ItemStack fillBucket(@NotNull Fluid fluid, @NotNull ItemStack bucket);
     }
 
     @ApiStatus.OverrideOnly

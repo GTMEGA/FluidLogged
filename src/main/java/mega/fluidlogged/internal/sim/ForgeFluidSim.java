@@ -22,14 +22,15 @@
 
 package mega.fluidlogged.internal.sim;
 
-import mega.fluidlogged.api.IFluid;
 
 import net.minecraft.world.World;
+
+import net.minecraftforge.fluids.BlockFluidClassic;
 
 import java.util.Random;
 
 public class ForgeFluidSim {
-    public static void simulate(IFluid.ForgeFluid fluid, World world, int x, int y, int z, Random random) {
+    public static void simulate(World world, int x, int y, int z, Random random, BlockFluidClassic fluidBlock) {
 
     }
 }

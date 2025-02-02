@@ -22,14 +22,14 @@
 
 package mega.fluidlogged.api.world;
 
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.world.FLWorldDriver;
 import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.block.Block;
+import net.minecraftforge.fluids.Fluid;
 
 public interface WorldDriver {
-    boolean canBeFluidLogged(Block block, int meta, IFluid fluid);
+    boolean canBeFluidLogged(@NotNull Block block, int meta, @NotNull Fluid fluid);
 
     static void register(@NotNull WorldDriver driver) {
         FLWorldDriver.INSTANCE.registerDriver(driver);

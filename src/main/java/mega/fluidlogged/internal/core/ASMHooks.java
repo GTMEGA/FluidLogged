@@ -34,7 +34,7 @@ public class ASMHooks {
     public static int drawFluidLogged(RenderBlocks renderBlocks, int x, int y, int z, int pass) {
 
         val fluid = ((FLBlockAccess)renderBlocks.blockAccess).fl$getFluid(x, y, z);
-        val fluidBlock = fluid == null ? null : fluid.toBlock();
+        val fluidBlock = fluid == null ? null : fluid.getBlock();
 
         int result = 0;
 

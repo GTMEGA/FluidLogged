@@ -28,7 +28,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -38,6 +37,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.IFluidBlock;
 
 @Mixin(Entity.class)
@@ -46,7 +46,7 @@ public abstract class EntityMixin {
                    at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/World;getBlock(III)Lnet/minecraft/block/Block;"),
                    require = 1)
-    private Block checkFluidMaterial(World world, int x, int y, int z, Operation<Block> original, @Local(argsOnly = true) Material material, @Share("logged")LocalRef<IFluid> logged) {
+    private Block checkFluidMaterial(World world, int x, int y, int z, Operation<Block> original, @Local(argsOnly = true) Material material, @Share("logged")LocalRef<Fluid> logged) {
         logged.set(null);
         val theBlock = original.call(world, x, y, z);
         if (theBlock.getMaterial() == material) {
@@ -56,7 +56,7 @@ public abstract class EntityMixin {
         if (fluid == null) {
             return theBlock;
         }
-        val fluidBlock = fluid.toBlock();
+        val fluidBlock = fluid.getBlock();
         if (fluidBlock == null) {
             return theBlock;
         }

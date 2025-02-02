@@ -32,8 +32,8 @@ import net.minecraft.world.chunk.Chunk;
 import java.util.List;
 
 public interface FLWorld {
-    void fl$scheduleFluidUpdate(int x, int y, int z, Block block, int delay);
-    void fl$scheduleFluidUpdateWithPriority(int x, int y, int z, Block block, int delay, int priority);
-    void fl$insertUpdate(int x, int y, int z, Block block, int delay, int priority);
+    void fl$scheduleFluidUpdate(int x, int y, int z, @NotNull Block block, int delay);
+    void fl$scheduleFluidUpdateWithPriority(int x, int y, int z, @NotNull Block block, int delay, int priority);
+    void fl$insertUpdate(int x, int y, int z, @NotNull Block block, int delay, int priority);
     @Nullable List<@NotNull NextTickListEntry> fl$getPendingFluidUpdates(@NotNull Chunk chunk, boolean remove);
 }

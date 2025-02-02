@@ -47,7 +47,7 @@ public abstract class ActiveRenderInfoMixin {
         if (fluid == null) {
             return original.call(world, x, y, z);
         }
-        val fluidBlock = fluid.toBlock();
+        val fluidBlock = fluid.getBlock();
         if (fluidBlock == null) {
             return original.call(world, x, y, z);
         }

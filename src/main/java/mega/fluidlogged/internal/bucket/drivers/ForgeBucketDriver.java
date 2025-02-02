@@ -23,7 +23,6 @@
 package mega.fluidlogged.internal.bucket.drivers;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.api.bucket.BucketDriver;
 import mega.fluidlogged.api.bucket.BucketEmptyResults;
 import mega.fluidlogged.api.bucket.BucketState;
@@ -31,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -40,9 +40,12 @@ public class ForgeBucketDriver implements BucketDriver.Fill, BucketDriver.Empty,
         if (!FluidContainerRegistry.isBucket(bucket)) {
             return null;
         }
-        val forgeFluid = FluidContainerRegistry.getFluidForFilledItem(bucket);
-        val fluid = new IFluid.ForgeFluid(forgeFluid.getFluid());
-        val fluidBlock = fluid.toBlock();
+        val fluidStack = FluidContainerRegistry.getFluidForFilledItem(bucket);
+        if (fluidStack.amount != FluidContainerRegistry.BUCKET_VOLUME) {
+            return null;
+        }
+        val fluid = fluidStack.getFluid();
+        val fluidBlock = fluid.getBlock();
         if (fluidBlock == null) {
             return null;
         }
@@ -51,12 +54,8 @@ public class ForgeBucketDriver implements BucketDriver.Fill, BucketDriver.Empty,
     }
 
     @Override
-    public @Nullable ItemStack fillBucket(@NotNull IFluid fluid, @NotNull ItemStack bucket) {
-        if (!(fluid instanceof IFluid.ForgeFluid)) {
-            return null;
-        }
-        val ff = ((IFluid.ForgeFluid)fluid);
-        return FluidContainerRegistry.fillFluidContainer(new FluidStack(ff.fluid, 1000), bucket);
+    public @Nullable ItemStack fillBucket(@NotNull Fluid fluid, @NotNull ItemStack bucket) {
+        return FluidContainerRegistry.fillFluidContainer(new FluidStack(fluid, 1000), bucket);
     }
 
     @Override

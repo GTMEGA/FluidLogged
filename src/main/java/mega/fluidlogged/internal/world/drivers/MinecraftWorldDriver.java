@@ -23,8 +23,8 @@
 package mega.fluidlogged.internal.world.drivers;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.api.world.WorldDriver;
+import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
@@ -37,8 +37,9 @@ import net.minecraft.block.BlockSign;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.block.BlockTrapDoor;
-import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
+
+import net.minecraftforge.fluids.Fluid;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,18 +73,19 @@ public class MinecraftWorldDriver implements WorldDriver {
         lavaLoggable.add(Blocks.sandstone_stairs);
         lavaLoggable.add(Blocks.quartz_stairs);
     }
+
     @Override
-    public boolean canBeFluidLogged(Block block, int meta, IFluid fluid) {
+    public boolean canBeFluidLogged(@NotNull Block block, int meta, @NotNull Fluid fluid) {
         if (block.isOpaqueCube())
             return false;
-        if (!(fluid instanceof IFluid.VanillaFluid)) {
+
+        val fluidBlock = fluid.getBlock();
+        if (fluidBlock == null) {
             return false;
         }
-        val liquid = ((IFluid.VanillaFluid)fluid).liquid;
-        val isLava = liquid.getMaterial() == Material.lava;
-        if (isLava) {
+        if (fluidBlock == Blocks.lava) {
             return lavaLoggable.contains(block);
-        } else {
+        } else if (fluidBlock == Blocks.water) {
             if (nonWaterLoggable.contains(block)) {
                 return false;
             }
@@ -97,6 +99,8 @@ public class MinecraftWorldDriver implements WorldDriver {
                 }
             }
             nonWaterLoggable.add(block);
+            return false;
+        } else {
             return false;
         }
     }

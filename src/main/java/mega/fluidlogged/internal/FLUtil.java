@@ -23,23 +23,32 @@
 package mega.fluidlogged.internal;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.internal.mixin.hook.FLWorld;
+import mega.fluidlogged.internal.sim.ForgeFluidSim;
+import mega.fluidlogged.internal.sim.VanillaFluidSim;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockStaticLiquid;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
+import net.minecraftforge.fluids.BlockFluidClassic;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.IFluidBlock;
 import cpw.mods.fml.common.eventhandler.Event;
 
+import java.util.Random;
 import java.util.function.Consumer;
 
 public class FLUtil {
@@ -50,7 +59,7 @@ public class FLUtil {
         val fluid = ((FLBlockAccess)access).fl$getFluid(x, y, z);
         if (fluid == null)
             return b;
-        val block = fluid.toBlock();
+        val block = fluid.getBlock();
         if (block == null)
             return b;
         return block;
@@ -62,7 +71,7 @@ public class FLUtil {
         val fluid = ((FLBlockAccess)access).fl$getFluid(x, y, z);
         if (fluid == null)
             return access.getBlockMetadata(x, y, z);
-        val block = fluid.toBlock();
+        val block = fluid.getBlock();
         if (block == null)
             return access.getBlockMetadata(x, y, z);
         return 0;
@@ -96,14 +105,49 @@ public class FLUtil {
         resultCallback.accept(item);
     }
 
-    @NotNull
-    public static IFluid resolveVanillaFluid(Block block) {
-        if (block instanceof BlockDynamicLiquid) {
-            val staticLiquid = Block.getBlockById(Block.getIdFromBlock(block) + 1);
-            if (staticLiquid instanceof BlockStaticLiquid && staticLiquid.getMaterial() == block.getMaterial()) {
-                return new IFluid.VanillaFluid((BlockLiquid) staticLiquid);
+    public static void onFluidPlacedInto(@NotNull World world, int x, int y, int z, @NotNull Block block, @NotNull Block fluidBlock) {
+        if (fluidBlock instanceof BlockLiquid) {
+            ((FLWorld)world).fl$scheduleFluidUpdate(x, y, z, block, fluidBlock.tickRate(world));
+        } else if (fluidBlock instanceof IFluidBlock) {
+            // TODO
+        }
+    }
+
+    public static void simulate(@NotNull World world, int x, int y, int z, @NotNull Random random, Fluid fluid) {
+        val block = fluid.getBlock();
+        if (block == null)
+            return;
+        if (block instanceof BlockLiquid) {
+            VanillaFluidSim.simulate(world, x, y, z, random, (BlockLiquid) resolveVanillaSimulationLiquid(block));
+        } else if (block instanceof BlockFluidClassic) {
+            ForgeFluidSim.simulate(world, x, y, z, random, (BlockFluidClassic) block);
+        }
+    }
+
+    private static Block resolveVanillaSimulationLiquid(Block block) {
+        if (block instanceof BlockStaticLiquid) {
+            val dynamic = Block.getBlockById(Block.getIdFromBlock(block) - 1);
+            if (dynamic instanceof BlockDynamicLiquid && dynamic.getMaterial() == block.getMaterial()) {
+                return dynamic;
             }
         }
-        return new IFluid.VanillaFluid((BlockLiquid) block);
+        return block;
+    }
+
+    public static @Nullable Fluid fromWorldBlock(@NotNull World world, int x, int y, int z, @NotNull Block block) {
+        val meta = world.getBlockMetadata(x, y, z);
+        if (meta != 0) {
+            return null;
+        }
+        return fromBucketBlock(block);
+    }
+
+    public static @Nullable Fluid fromBucketBlock(@NotNull Block block) {
+        if (block == Blocks.flowing_water) {
+            block = Blocks.water;
+        } else if (block == Blocks.flowing_lava) {
+            block = Blocks.lava;
+        }
+        return FluidRegistry.lookupFluidForBlock(block);
     }
 }

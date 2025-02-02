@@ -23,9 +23,9 @@
 package mega.fluidlogged.internal.sim;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid.VanillaFluid;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
@@ -38,11 +38,10 @@ public class VanillaFluidSim {
     private static final boolean[] flow = new boolean[4];
     private static final int[] flowDist = new int[4];
 
-    public static void simulate(VanillaFluid fluid, World world, int x, int y, int z, Random random) {
+    public static void simulate(World world, int x, int y, int z, Random random, BlockLiquid fluidBlock) {
         int level = 0;
         int levelDropPerBlock = 1;
 
-        val fluidBlock = fluid.liquid;
         val fluidMaterial = fluidBlock.getMaterial();
 
         if (fluidMaterial == Material.lava && !world.provider.isHellWorld) {

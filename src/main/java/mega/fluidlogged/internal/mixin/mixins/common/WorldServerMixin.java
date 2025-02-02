@@ -115,7 +115,7 @@ public abstract class WorldServerMixin extends World implements FLWorld {
             theProfiler.startSection("cleaning");
 
             for (int j = 0; j < i; ++j) {
-                val entry = (NextTickListEntry) fl$pendingTicksSorted.first();
+                val entry = fl$pendingTicksSorted.first();
 
                 if (!runAllPending && entry.scheduledTime > this.worldInfo.getWorldTotalTime()) {
                     break;
@@ -182,12 +182,12 @@ public abstract class WorldServerMixin extends World implements FLWorld {
     }
 
     @Override
-    public void fl$scheduleFluidUpdate(int x, int y, int z, Block block, int delay) {
+    public void fl$scheduleFluidUpdate(int x, int y, int z, @NotNull Block block, int delay) {
         fl$scheduleFluidUpdateWithPriority(x, y, z, block, delay, 0);
     }
 
     @Override
-    public void fl$scheduleFluidUpdateWithPriority(int x, int y, int z, Block block, int delay, int priority) {
+    public void fl$scheduleFluidUpdateWithPriority(int x, int y, int z, @NotNull Block block, int delay, int priority) {
         val entry = new NextTickListEntry(x, y, z, block);
         //Keeping here as a note for future when it may be restored.
         //boolean isForced = getPersistentChunks().containsKey(new ChunkCoordIntPair(nextticklistentry.xCoord >> 4, nextticklistentry.zCoord >> 4));
@@ -226,7 +226,7 @@ public abstract class WorldServerMixin extends World implements FLWorld {
     }
 
     @Override
-    public void fl$insertUpdate(int x, int y, int z, Block block, int delay, int priority) {
+    public void fl$insertUpdate(int x, int y, int z, @NotNull Block block, int delay, int priority) {
         val entry = new NextTickListEntry(x, y, z, block);
         entry.setPriority(priority);
         if (block.getMaterial() != Material.air) {

@@ -23,9 +23,11 @@
 package mega.fluidlogged.internal.mixin.mixins.common;
 
 import lombok.val;
+import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
 import mega.fluidlogged.internal.mixin.hook.FLWorld;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.block.Block;
@@ -36,21 +38,21 @@ import java.util.Random;
 @Mixin(Block.class)
 public abstract class BlockMixin implements FLBlockRoot {
     @Override
-    public void fl$updateTick(World world, int x, int y, int z, Random random) {
+    public void fl$updateTick(@NotNull World world, int x, int y, int z, @NotNull Random random) {
         val fluid = ((FLBlockAccess) world).fl$getFluid(x, y, z);
         if (fluid == null) {
             return;
         }
-        fluid.simulate(world, x, y, z, random);
+        FLUtil.simulate(world, x, y, z, random, fluid);
     }
 
     @Override
-    public void fl$onNeighborChange(World world, int x, int y, int z, Block neighbor) {
+    public void fl$onNeighborChange(@NotNull World world, int x, int y, int z, @NotNull Block neighbor) {
         val fluid = ((FLBlockAccess) world).fl$getFluid(x, y, z);
         if (fluid == null) {
             return;
         }
-        val block = fluid.toBlock();
+        val block = fluid.getBlock();
         if (block == null) {
             return;
         }

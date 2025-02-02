@@ -26,7 +26,7 @@ import lombok.val;
 import mega.fluidlogged.api.bucket.BucketDriver;
 import mega.fluidlogged.api.bucket.BucketEmptyResults;
 import mega.fluidlogged.api.bucket.BucketState;
-import mega.fluidlogged.api.IFluid;
+import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.internal.world.FLWorldDriver;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 
@@ -34,6 +34,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
+import net.minecraftforge.fluids.Fluid;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -82,7 +83,7 @@ public class FLBucketDriver {
         }
     }
 
-    private ItemStack fillBucket(IFluid fluid, ItemStack bucket) {
+    private ItemStack fillBucket(Fluid fluid, ItemStack bucket) {
         for (val driver: fillDrivers) {
             val item = driver.fillBucket(fluid, bucket);
             if (item != null) {
@@ -131,6 +132,10 @@ public class FLBucketDriver {
         }
         val emptyBucket = result.getItem();
         val fluid = result.getFluid();
+        val fluidBlock = fluid.getBlock();
+        if (fluidBlock == null) {
+            return null;
+        }
         val block = world.getBlock(x, y, z);
         val meta = world.getBlockMetadata(x, y, z);
         val isFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
@@ -139,7 +144,7 @@ public class FLBucketDriver {
             return null;
         }
         wlWorld.fl$setFluid(x, y, z, fluid);
-        fluid.onFluidPlacedInto(world, x, y, z, block);
+        FLUtil.onFluidPlacedInto(world, x, y, z, block, fluidBlock);
         world.notifyBlocksOfNeighborChange(x, y, z, block);
         world.markBlockForUpdate(x, y, z);
         return emptyBucket;

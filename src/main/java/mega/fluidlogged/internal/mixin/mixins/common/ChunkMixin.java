@@ -23,7 +23,6 @@
 package mega.fluidlogged.internal.mixin.mixins.common;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLChunk;
 import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +31,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraftforge.fluids.Fluid;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin implements FLChunk {
@@ -40,7 +40,7 @@ public abstract class ChunkMixin implements FLChunk {
     @Shadow public boolean isModified;
 
     @Override
-    public @Nullable IFluid fl$getFluid(int x, int y, int z) {
+    public @Nullable Fluid fl$getFluid(int x, int y, int z) {
         val Y = y >> 4;
         if (Y < 0)
             return null;
@@ -55,7 +55,7 @@ public abstract class ChunkMixin implements FLChunk {
     }
 
     @Override
-    public void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid) {
+    public void fl$setFluid(int x, int y, int z, @Nullable Fluid fluid) {
         val Y = y >> 4;
         if (Y < 0)
             return;

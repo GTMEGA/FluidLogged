@@ -22,26 +22,26 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLPacket;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import net.minecraft.network.play.server.S23PacketBlockChange;
+import net.minecraftforge.fluids.Fluid;
 
 @Mixin(S23PacketBlockChange.class)
 public abstract class S23PacketBlockChangeMixin implements FLPacket {
     @Unique
-    private IFluid wl$fluidLog;
+    private Fluid fl$fluidLog;
 
     @Override
-    public @Nullable IFluid wl$getFluidLog() {
-        return wl$fluidLog;
+    public @Nullable Fluid fl$getFluidLog() {
+        return fl$fluidLog;
     }
 
     @Override
-    public void wl$setFluidLog(@Nullable IFluid fluid) {
-        this.wl$fluidLog = fluid;
+    public void fl$setFluidLog(@Nullable Fluid fluid) {
+        this.fl$fluidLog = fluid;
     }
 }

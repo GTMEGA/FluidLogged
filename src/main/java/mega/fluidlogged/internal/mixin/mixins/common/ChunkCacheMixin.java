@@ -23,7 +23,6 @@
 package mega.fluidlogged.internal.mixin.mixins.common;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLChunk;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +32,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
+import net.minecraftforge.fluids.Fluid;
 
 @Mixin(ChunkCache.class)
 public abstract class ChunkCacheMixin implements FLBlockAccess {
@@ -43,7 +43,7 @@ public abstract class ChunkCacheMixin implements FLBlockAccess {
     @Shadow private int chunkZ;
 
     @Override
-    public void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid) {
+    public void fl$setFluid(int x, int y, int z, @Nullable Fluid fluid) {
         int cX = (x >> 4) - this.chunkX;
         int cZ = (z >> 4) - this.chunkZ;
         if (cX < 0 || cZ < 0 || cX >= chunkArray.length) {
@@ -60,7 +60,7 @@ public abstract class ChunkCacheMixin implements FLBlockAccess {
     }
 
     @Override
-    public @Nullable IFluid fl$getFluid(int x, int y, int z) {
+    public @Nullable Fluid fl$getFluid(int x, int y, int z) {
         int cX = (x >> 4) - this.chunkX;
         int cZ = (z >> 4) - this.chunkZ;
         if (cX < 0 || cZ < 0 || cX >= chunkArray.length) {

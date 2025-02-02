@@ -28,7 +28,6 @@ import gnu.trove.list.array.TIntArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import mega.fluidlogged.Tags;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLChunk;
 import mega.fluidlogged.internal.mixin.hook.FLPacket;
 import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
@@ -45,16 +44,24 @@ import net.minecraft.network.play.server.S23PacketBlockChange;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import static mega.fluidlogged.api.IFluid.TYPE_NONE;
+import java.util.BitSet;
 
 public class FLManager implements DataManager.PacketDataManager, DataManager.ChunkDataManager, DataManager.SubChunkDataManager, DataManager.BlockPacketDataManager {
+    private static final int SUB_CHUNK_COUNT = 16;
+    private static final int BLOCKS_PER_SUB_CHUNK = 16 * 16 * 16;
+    private static final int BITS_PER_BYTE = 8;
+    private static final int BITS_PER_INT = BITS_PER_BYTE * 4;
+    private static final int BITS_PER_BLOCK = BITS_PER_INT + 1;
+    private static final int EXTRA_BITS_PER_SUB_CHUNK = BITS_PER_INT * 3 + BITS_PER_BYTE;
+    private static final int BITS_PER_CHUNK = SUB_CHUNK_COUNT * (BLOCKS_PER_SUB_CHUNK * BITS_PER_BLOCK + EXTRA_BITS_PER_SUB_CHUNK);
+    private static final int BYTES_PER_CHUNK = BITS_PER_CHUNK / BITS_PER_BYTE;
     @Override
     public int maxPacketSize() {
-        return 16 * (16 * 16 * 16) * 5 + 16 * 9;
+        return BYTES_PER_CHUNK;
     }
 
     @Override
@@ -108,44 +115,50 @@ public class FLManager implements DataManager.PacketDataManager, DataManager.Chu
 
     @RequiredArgsConstructor
     private static class FluidIDList {
-        public final byte @NotNull [] types;
+        public final @NotNull BitSet presence;
         public final int @NotNull [] ids;
     }
-    private static @Nullable FluidIDList serialize(IFluid @Nullable [] fluids) {
-        if (fluids == null)
-            return null;
-        byte[] types = null;
+    private static @Nullable FluidIDList serialize(Fluid @NotNull [] fluids) {
+        BitSet presence = null;
         val ids = new TIntArrayList();
         val length = fluids.length;
         for (int i = 0; i < length; i++) {
             val fluid = fluids[i];
-            if (fluid != null) {
-                if (types == null) {
-                    types = new byte[length];
-                }
-                val entry = fluid.serialize();
-                types[i] = entry.type;
-                ids.add(entry.id);
+            if (fluid == null) {
+                continue;
             }
+            val block = fluid.getBlock();
+            if (block == null) {
+                continue;
+            }
+            if (presence == null) {
+                presence = new BitSet(length);
+            }
+
+            presence.set(i);
+            ids.add(Block.getIdFromBlock(block));
         }
-        if (types == null)
+        if (presence == null)
             return null;
-        return new FluidIDList(types, ids.toArray());
+        return new FluidIDList(presence, ids.toArray());
     }
 
-    private static IFluid @Nullable [] deserialize(byte @NotNull [] types, int @NotNull [] ids) {
-        val length = types.length;
+    private static Fluid @Nullable [] deserialize(int length, @NotNull BitSet presence, int @NotNull [] ids) {
         int idsI = 0;
-        IFluid[] fluids = null;
+        Fluid[] fluids = null;
         for (int i = 0; i < length; i++) {
-            val type = types[i];
-            if (type != TYPE_NONE) {
-                val fluid = IFluid.deserialize(type, ids[idsI]);
+            if (presence.get(i)) {
+                val block = Block.getBlockById(ids[idsI]);
                 idsI++;
-                if (fluid == null)
+                if (block == null) {
                     continue;
+                }
+                val fluid = FluidRegistry.lookupFluidForBlock(block);
+                if (fluid == null) {
+                    continue;
+                }
                 if (fluids == null) {
-                    fluids = new IFluid[length];
+                    fluids = new Fluid[length];
                 }
                 fluids[i] = fluid;
             }
@@ -161,15 +174,22 @@ public class FLManager implements DataManager.PacketDataManager, DataManager.Chu
                 val subChunk = subChunks[i];
                 if (subChunk != null) {
                     val wlSubChunk = (FLSubChunk) subChunk;
-                    val flState = serialize(wlSubChunk.fl$getFluidLog());
+                    val fl = wlSubChunk.fl$getFluidLog();
+                    if (fl == null) {
+                        buffer.put((byte) 0);
+                        continue;
+                    }
+                    val flState = serialize(fl);
                     if (flState == null) {
                         buffer.put((byte)0);
                         continue;
                     }
                     buffer.put((byte)1);
-                    buffer.putInt(flState.types.length);
+                    buffer.putInt(fl.length);
+                    val presenceBytes = flState.presence.toByteArray();
+                    buffer.putInt(presenceBytes.length);
                     buffer.putInt(flState.ids.length);
-                    buffer.put(flState.types);
+                    buffer.put(presenceBytes);
                     for (val id: flState.ids) {
                         buffer.putInt(id);
                     }
@@ -190,15 +210,18 @@ public class FLManager implements DataManager.PacketDataManager, DataManager.Chu
                         wlSubChunk.fl$setFluidLog(null);
                         continue;
                     }
-                    val typesLength = buffer.getInt();
+                    val length = buffer.getInt();
+                    val presenceBytesLength = buffer.getInt();
                     val idsLength = buffer.getInt();
-                    val types = new byte[typesLength];
+                    val slice = buffer.slice();
+                    slice.limit(presenceBytesLength);
+                    buffer.position(buffer.position() + presenceBytesLength);
+                    val presence = BitSet.valueOf(slice);
                     val ids = new int[idsLength];
-                    buffer.get(types);
                     for (int j = 0; j < idsLength; j++) {
                         ids[j] = buffer.getInt();
                     }
-                    val arr = deserialize(types, ids);
+                    val arr = deserialize(length, presence, ids);
                     wlSubChunk.fl$setFluidLog(arr);
                 }
             }
@@ -207,26 +230,32 @@ public class FLManager implements DataManager.PacketDataManager, DataManager.Chu
 
     @Override
     public void writeSubChunkToNBT(Chunk chunk, ExtendedBlockStorage subChunk, NBTTagCompound nbt) {
-        val wlSubChunk = (FLSubChunk) subChunk;
-        val wl = serialize(wlSubChunk.fl$getFluidLog());
-        if (wl == null) {
+        val flSubChunk = (FLSubChunk) subChunk;
+        val fluidLog = flSubChunk.fl$getFluidLog();
+        if (fluidLog == null) {
             return;
         }
-        nbt.setByteArray("fl$types", wl.types);
-        nbt.setIntArray("fl$ids", wl.ids);
+        val serialized = serialize(fluidLog);
+        if (serialized == null) {
+            return;
+        }
+        nbt.setInteger("fl$len", fluidLog.length);
+        nbt.setByteArray("fl$pres", serialized.presence.toByteArray());
+        nbt.setIntArray("fl$ids", serialized.ids);
     }
 
     @Override
     public void readSubChunkFromNBT(Chunk chunk, ExtendedBlockStorage subChunk, NBTTagCompound nbt) {
-        val wlSubChunk = (FLSubChunk) subChunk;
-        if (!nbt.hasKey("fl$types", Constants.NBT.TAG_BYTE_ARRAY) || !nbt.hasKey("fl$ids", Constants.NBT.TAG_INT_ARRAY)) {
-            wlSubChunk.fl$setFluidLog(null);
+        val flSubChunk = (FLSubChunk) subChunk;
+        if (!nbt.hasKey("fl$len", Constants.NBT.TAG_INT) || !nbt.hasKey("fl$pres", Constants.NBT.TAG_BYTE_ARRAY) || !nbt.hasKey("fl$ids", Constants.NBT.TAG_INT_ARRAY)) {
+            flSubChunk.fl$setFluidLog(null);
             return;
         }
-        val types = nbt.getByteArray("fl$types");
+        val len = nbt.getInteger("fl$len");
+        val presence = BitSet.valueOf(nbt.getByteArray("fl$pres"));
         val ids = nbt.getIntArray("fl$ids");
-        val wl = deserialize(types, ids);
-        wlSubChunk.fl$setFluidLog(wl);
+        val deserialized = deserialize(len, presence, ids);
+        flSubChunk.fl$setFluidLog(deserialized);
     }
 
     @Override
@@ -268,38 +297,45 @@ public class FLManager implements DataManager.PacketDataManager, DataManager.Chu
 
     @Override
     public void writeBlockToPacket(Chunk chunk, int x, int y, int z, S23PacketBlockChange packet) {
-        ((FLPacket)packet).wl$setFluidLog(((FLChunk)chunk).fl$getFluid(x, y, z));
+        ((FLPacket)packet).fl$setFluidLog(((FLChunk)chunk).fl$getFluid(x, y, z));
     }
 
     @Override
     public void readBlockFromPacket(Chunk chunk, int x, int y, int z, S23PacketBlockChange packet) {
-        ((FLChunk)chunk).fl$setFluid(x, y, z, ((FLPacket)packet).wl$getFluidLog());
+        ((FLChunk)chunk).fl$setFluid(x, y, z, ((FLPacket)packet).fl$getFluidLog());
     }
 
     @Override
-    public void writeBlockPacketToBuffer(S23PacketBlockChange packet, PacketBuffer buffer) throws IOException {
-        val fluid = ((FLPacket)packet).wl$getFluidLog();
+    public void writeBlockPacketToBuffer(S23PacketBlockChange packet, PacketBuffer buffer) {
+        val fluid = ((FLPacket)packet).fl$getFluidLog();
         if (fluid == null) {
-            buffer.writeByte(TYPE_NONE);
+            buffer.writeBoolean(false);
             return;
         }
-        val data = fluid.serialize();
-        val type = data.type;
-        buffer.writeByte(type);
-        if (type == TYPE_NONE)
+        val block = fluid.getBlock();
+        if (block == null) {
+            buffer.writeBoolean(false);
             return;
-        buffer.writeInt(data.id);
+        }
+        val id = Block.getIdFromBlock(block);
+        buffer.writeBoolean(true);
+        buffer.writeInt(id);
     }
 
     @Override
-    public void readBlockPacketFromBuffer(S23PacketBlockChange packet, PacketBuffer buffer) throws IOException {
-        val type = buffer.readByte();
-        if (type == TYPE_NONE) {
-            ((FLPacket)packet).wl$setFluidLog(null);
+    public void readBlockPacketFromBuffer(S23PacketBlockChange packet, PacketBuffer buffer) {
+        val fl$packet = (FLPacket) packet;
+        if (!buffer.readBoolean()) {
+            fl$packet.fl$setFluidLog(null);
             return;
         }
         val id = buffer.readInt();
-        val fluid = IFluid.deserialize(type, id);
-        ((FLPacket)packet).wl$setFluidLog(fluid);
+        val block = Block.getBlockById(id);
+        if (block == null) {
+            fl$packet.fl$setFluidLog(null);
+            return;
+        }
+        val fluid = FluidRegistry.lookupFluidForBlock(block);
+        fl$packet.fl$setFluidLog(fluid);
     }
 }

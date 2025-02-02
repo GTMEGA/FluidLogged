@@ -22,43 +22,43 @@
 
 package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraftforge.fluids.Fluid;
 
 @Mixin(ExtendedBlockStorage.class)
 public abstract class ExtendedBlockStorageMixin implements FLSubChunk {
     @Unique
-    private IFluid[] fl$fluidLog;
+    private Fluid[] fl$fluidLog;
 
     @Override
-    public IFluid @Nullable [] fl$getFluidLog() {
+    public Fluid @Nullable [] fl$getFluidLog() {
         return fl$fluidLog;
     }
 
     @Override
-    public void fl$setFluidLog(IFluid @Nullable [] fluidLog) {
+    public void fl$setFluidLog(Fluid @Nullable [] fluidLog) {
         this.fl$fluidLog = fluidLog;
     }
 
     @Override
-    public @Nullable IFluid fl$getFluid(int x, int y, int z) {
+    public @Nullable Fluid fl$getFluid(int x, int y, int z) {
         if (fl$fluidLog == null)
             return null;
         return fl$fluidLog[y << 8 | z << 4 | x];
     }
 
     @Override
-    public void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid) {
+    public void fl$setFluid(int x, int y, int z, @Nullable Fluid fluid) {
         if (fl$fluidLog == null) {
             if (fluid == null) {
                 return;
             }
-            fl$fluidLog = new IFluid[16 * 16 * 16];
+            fl$fluidLog = new Fluid[16 * 16 * 16];
         }
         fl$fluidLog[y << 8 | z << 4 | x] = fluid;
     }

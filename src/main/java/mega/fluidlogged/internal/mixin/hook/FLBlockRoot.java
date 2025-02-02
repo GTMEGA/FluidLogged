@@ -22,12 +22,14 @@
 
 package mega.fluidlogged.internal.mixin.hook;
 
+import org.jetbrains.annotations.NotNull;
+
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 
 import java.util.Random;
 
 public interface FLBlockRoot {
-    void fl$updateTick(World world, int x, int y, int z, Random random);
-    void fl$onNeighborChange(World world, int x, int y, int z, Block neighbor);
+    void fl$updateTick(@NotNull World world, int x, int y, int z, @NotNull Random random);
+    void fl$onNeighborChange(@NotNull World world, int x, int y, int z, @NotNull Block neighbor);
 }

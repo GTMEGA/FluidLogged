@@ -23,10 +23,12 @@
 package mega.fluidlogged.internal.world;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import mega.fluidlogged.api.world.WorldDriver;
+import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.block.Block;
+
+import net.minecraftforge.fluids.Fluid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +41,7 @@ public class FLWorldDriver {
         drivers.add(driver);
     }
 
-    public boolean canBeFluidLogged(Block block, int meta, IFluid fluid) {
+    public boolean canBeFluidLogged(@NotNull Block block, int meta, @NotNull Fluid fluid) {
         for (val driver: drivers) {
             if (driver.canBeFluidLogged(block, meta, fluid)) {
                 return true;

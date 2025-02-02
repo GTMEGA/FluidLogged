@@ -23,11 +23,12 @@
 package mega.fluidlogged.internal.mixin.hook;
 
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraftforge.fluids.Fluid;
+
 public interface FLBlockAccess {
-    default boolean fl$isFluidLogged(int x, int y, int z, @Nullable IFluid fluid) {
+    default boolean fl$isFluidLogged(int x, int y, int z, @Nullable Fluid fluid) {
         val fluidInChunk = fl$getFluid(x, y, z);
         if (fluidInChunk == null)
             return false;
@@ -35,6 +36,6 @@ public interface FLBlockAccess {
             return true;
         return fluid.equals(fluidInChunk);
     }
-    void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid);
-    @Nullable IFluid fl$getFluid(int x, int y, int z);
+    void fl$setFluid(int x, int y, int z, @Nullable Fluid fluid);
+    @Nullable Fluid fl$getFluid(int x, int y, int z);
 }

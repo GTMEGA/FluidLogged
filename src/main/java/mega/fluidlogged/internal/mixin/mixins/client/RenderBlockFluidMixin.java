@@ -43,7 +43,7 @@ public abstract class RenderBlockFluidMixin {
               require = 4)
     private Block fluidHeightGetBlock(IBlockAccess world, int x, int y, int z) {
         val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
-        val blockFluid = fluid == null ? null : fluid.toBlock();
+        val blockFluid = fluid == null ? null : fluid.getBlock();
         if (blockFluid == null) {
             return world.getBlock(x, y, z);
         }
@@ -56,7 +56,7 @@ public abstract class RenderBlockFluidMixin {
               require = 1)
     private int fluidHeightGetBlockMeta(IBlockAccess world, int x, int y, int z, @Local(argsOnly = true) BlockFluidBase inputBlock) {
         val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
-        val blockFluid = fluid == null ? null : fluid.toBlock();
+        val blockFluid = fluid == null ? null : fluid.getBlock();
         if (blockFluid == null) {
             return world.getBlockMetadata(x, y, z);
         }

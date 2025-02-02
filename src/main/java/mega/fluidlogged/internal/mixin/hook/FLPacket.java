@@ -22,10 +22,11 @@
 
 package mega.fluidlogged.internal.mixin.hook;
 
-import mega.fluidlogged.api.IFluid;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraftforge.fluids.Fluid;
+
 public interface FLPacket {
-    @Nullable IFluid wl$getFluidLog();
-    void wl$setFluidLog(@Nullable IFluid fluid);
+    @Nullable Fluid fl$getFluidLog();
+    void fl$setFluidLog(@Nullable Fluid fluid);
 }

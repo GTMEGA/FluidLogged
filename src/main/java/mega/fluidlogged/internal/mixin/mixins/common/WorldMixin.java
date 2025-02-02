@@ -28,7 +28,8 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import lombok.val;
-import mega.fluidlogged.api.IFluid;
+import lombok.var;
+import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.internal.world.FLWorldDriver;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -48,6 +50,8 @@ import net.minecraft.world.NextTickListEntry;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
+
+import net.minecraftforge.fluids.Fluid;
 
 import java.util.List;
 
@@ -69,7 +73,7 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
     private void fluidLoggedSetBlock(int x, int y, int z, CallbackInfoReturnable<Boolean> cir) {
         val fluid = fl$getFluid(x, y, z);
         if (fluid != null) {
-            val block = fluid.toBlock();
+            val block = fluid.getBlock();
             if (block != null) {
                 cir.setReturnValue(setBlock(x, y, z, block));
             }
@@ -87,19 +91,14 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
                                @Local(ordinal = 2,
                                       argsOnly = true) int wZ) {
         val fl$chunk = (FLChunk) chunk;
-        val currentFluid = fl$chunk.fl$getFluid(cX, y, cZ);
-        if (!FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, currentFluid)) {
+        var currentFluid = fl$chunk.fl$getFluid(cX, y, cZ);
+        if (currentFluid == null) {
+            currentFluid = FLUtil.fromWorldBlock(fl$this(), wX, y, wZ, originalBlock);
+        }
+        if (currentFluid == null || !FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, currentFluid)) {
             fl$chunk.fl$setFluid(cX, y, cZ, null);
         } else {
-            val originalMeta = chunk.getBlockMetadata(cX, y, cZ);
-            if (!FLWorldDriver.INSTANCE.canBeFluidLogged(originalBlock, originalMeta, currentFluid)) {
-                val fluidFromBlock = IFluid.fromWorldBlock((World)(Object)this, wX, y, wZ, originalBlock);
-                if (fluidFromBlock != null && FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluidFromBlock)) {
-                    fl$chunk.fl$setFluid(cX, y, cZ, fluidFromBlock);
-                } else {
-                    fl$chunk.fl$setFluid(cX, y, cZ, null);
-                }
-            }
+            fl$chunk.fl$setFluid(cX, y, cZ, currentFluid);
         }
         return original.call(chunk, cX, y, cZ, block, meta);
     }
@@ -119,7 +118,7 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
                    require = 1)
     private Block accelerationGetBlock(World world, int x, int y, int z, Operation<Block> original, @Share("logged") LocalBooleanRef logged) {
         val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
-        val fluidBlock = fluid == null ? null : fluid.toBlock();
+        val fluidBlock = fluid == null ? null : fluid.getBlock();
         if (fluidBlock != null) {
             logged.set(true);
             return fluidBlock;
@@ -145,7 +144,7 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
                    require = 1)
     private Block isAnyLiquidGetBlock(World world, int x, int y, int z, Operation<Block> original) {
         val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
-        val fluidBlock = fluid == null ? null : fluid.toBlock();
+        val fluidBlock = fluid == null ? null : fluid.getBlock();
         if (fluidBlock != null) {
             return fluidBlock;
         }
@@ -162,7 +161,7 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
             return ogBlock;
         }
         val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
-        val fluidBlock = fluid == null ? null : fluid.toBlock();
+        val fluidBlock = fluid == null ? null : fluid.getBlock();
         if (fluidBlock != null) {
             return fluidBlock;
         }
@@ -174,7 +173,7 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
     // region FLBlockAccess
 
     @Override
-    public void fl$setFluid(int x, int y, int z, @Nullable IFluid fluid) {
+    public void fl$setFluid(int x, int y, int z, @Nullable Fluid fluid) {
         val chunk = getChunkFromBlockCoords(x, z);
         if (chunk == null || chunk instanceof EmptyChunk)
             return;
@@ -183,7 +182,7 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
     }
 
     @Override
-    public @Nullable IFluid fl$getFluid(int x, int y, int z) {
+    public @Nullable Fluid fl$getFluid(int x, int y, int z) {
         val chunk = getChunkFromBlockCoords(x, z);
         if (chunk == null || chunk instanceof EmptyChunk)
             return null;
@@ -196,10 +195,10 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
 
 
     @Override
-    public void fl$scheduleFluidUpdate(int x, int y, int z, Block block, int delay) {}
+    public void fl$scheduleFluidUpdate(int x, int y, int z, @NotNull Block block, int delay) {}
 
     @Override
-    public void fl$insertUpdate(int x, int y, int z, Block block, int delay, int priority) {}
+    public void fl$insertUpdate(int x, int y, int z, @NotNull Block block, int delay, int priority) {}
 
     @Override
     public @Nullable List<NextTickListEntry> fl$getPendingFluidUpdates(@NotNull Chunk chunk, boolean remove) {
@@ -207,4 +206,9 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
     }
 
     // endregion
+
+    @Unique
+    private World fl$this() {
+        return (World) (Object) this;
+    }
 }
