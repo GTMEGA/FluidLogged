@@ -11,6 +11,10 @@ minecraft_fp {
         rootPkg = "$group.fluidlogged"
     }
 
+    api {
+        packages = listOf("api")
+    }
+
     mixin {
         pkg = "internal.mixin.mixins"
         pluginClass = "internal.mixin.plugin.MixinPlugin"

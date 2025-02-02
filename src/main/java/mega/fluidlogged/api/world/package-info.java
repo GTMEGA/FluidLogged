@@ -19,10 +19,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
-/**
- * DO NOT USE THIS YET, NON-FINAL API!
- */
 @ApiStatus.Experimental
-package mega.fluidlogged.api;
+package mega.fluidlogged.api.world;
 
 import org.jetbrains.annotations.ApiStatus;
