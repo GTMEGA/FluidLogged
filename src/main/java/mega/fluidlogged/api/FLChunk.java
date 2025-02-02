@@ -20,13 +20,31 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal.mixin.hook;
+package mega.fluidlogged.api;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.Fluid;
 
+/**
+ * Implemented on {@link net.minecraft.world.chunk.Chunk} via a mixin.
+ */
+@ApiStatus.NonExtendable
 public interface FLChunk {
+    /**
+     * Retrieves the fluid from a fluidlogged block. Null if not fluidlogged. Note that this returns null if the block itself is a fluid block!
+     */
     @Nullable Fluid fl$getFluid(int x, int y, int z);
+
+    /**
+     * Makes a block fluidlogged with the given fluid. Does NOT verify whether the block can be fluidlogged!
+     * Pass in null to clear.
+     */
     void fl$setFluid(int x, int y, int z, @Nullable Fluid fluid);
+
+    static FLChunk of(Chunk chunk) {
+        return (FLChunk) chunk;
+    }
 }

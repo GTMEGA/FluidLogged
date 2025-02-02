@@ -23,7 +23,7 @@
 package mega.fluidlogged.internal;
 
 import lombok.val;
-import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.api.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLWorld;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +38,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.fluids.BlockFluidClassic;
@@ -137,8 +138,8 @@ public class FLUtil {
         return null;
     }
 
-    public static @Nullable Fluid fromWorldBlock(@NotNull World world, int x, int y, int z, @NotNull Block block) {
-        val meta = world.getBlockMetadata(x, y, z);
+    public static @Nullable Fluid fromChunkBlock(@NotNull Chunk chunk, int x, int y, int z, @NotNull Block block) {
+        val meta = chunk.getBlockMetadata(x, y, z);
         if (meta != 0) {
             return null;
         }

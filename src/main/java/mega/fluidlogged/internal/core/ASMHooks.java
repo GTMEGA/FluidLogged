@@ -23,7 +23,7 @@
 package mega.fluidlogged.internal.core;
 
 import lombok.val;
-import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.api.FLBlockAccess;
 
 import net.minecraft.client.renderer.RenderBlocks;
 

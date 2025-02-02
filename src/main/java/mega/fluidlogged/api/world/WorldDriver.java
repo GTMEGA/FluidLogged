@@ -23,15 +23,28 @@
 package mega.fluidlogged.api.world;
 
 import mega.fluidlogged.internal.world.FLWorldDriver;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.block.Block;
 import net.minecraftforge.fluids.Fluid;
 
 public interface WorldDriver {
+    @ApiStatus.OverrideOnly
     boolean canBeFluidLogged(@NotNull Block block, int meta, @NotNull Fluid fluid);
 
     static void register(@NotNull WorldDriver driver) {
         FLWorldDriver.INSTANCE.registerDriver(driver);
+    }
+
+    /**
+     * Check whether a given block can be fluidlogged by a fluid.
+     * @param block The block to check
+     * @param meta The checked block's metadata
+     * @param fluid The fluid that is trying to fluidlog the block
+     * @return true to allow fluidlogging
+     */
+    static boolean getCanBeFluidLogged(@NotNull Block block, int meta, @NotNull Fluid fluid) {
+        return FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
     }
 }

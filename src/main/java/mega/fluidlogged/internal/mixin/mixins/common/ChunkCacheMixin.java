@@ -23,8 +23,8 @@
 package mega.fluidlogged.internal.mixin.mixins.common;
 
 import lombok.val;
-import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
-import mega.fluidlogged.internal.mixin.hook.FLChunk;
+import mega.fluidlogged.api.FLBlockAccess;
+import mega.fluidlogged.api.FLChunk;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

@@ -27,7 +27,7 @@ import mega.fluidlogged.api.bucket.BucketDriver;
 import mega.fluidlogged.api.bucket.BucketEmptyResults;
 import mega.fluidlogged.api.bucket.BucketState;
 import mega.fluidlogged.internal.FLUtil;
-import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.api.FLBlockAccess;
 import mega.fluidlogged.internal.world.FLWorldDriver;
 
 import net.minecraft.item.ItemStack;

@@ -23,12 +23,20 @@
 package mega.fluidlogged.internal.mixin.mixins.common;
 
 import lombok.val;
-import mega.fluidlogged.internal.mixin.hook.FLChunk;
+import lombok.var;
+import mega.fluidlogged.internal.FLUtil;
+import mega.fluidlogged.api.FLChunk;
 import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
+import mega.fluidlogged.internal.world.FLWorldDriver;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.fluids.Fluid;
@@ -38,6 +46,8 @@ public abstract class ChunkMixin implements FLChunk {
     @Shadow public abstract ExtendedBlockStorage[] getBlockStorageArray();
 
     @Shadow public boolean isModified;
+
+    @Shadow public abstract Block getBlock(int posX, int posY, int posZ);
 
     @Override
     public @Nullable Fluid fl$getFluid(int x, int y, int z) {
@@ -68,5 +78,26 @@ public abstract class ChunkMixin implements FLChunk {
             return;
         ((FLSubChunk)subChunk).fl$setFluid(x, y & 0xf, z, fluid);
         isModified = true;
+    }
+
+    @Inject(method = "func_150807_a",
+            at = @At("HEAD"),
+            require = 1)
+    private void setBlock(int x, int y, int z, Block block, int meta, CallbackInfoReturnable<Boolean> cir) {
+        val originalBlock = getBlock(x, y, z);
+        var currentFluid = fl$getFluid(x, y, z);
+        if (currentFluid == null) {
+            currentFluid = FLUtil.fromChunkBlock(fl$this(), x, y, z, originalBlock);
+        }
+        if (currentFluid == null || !FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, currentFluid)) {
+            fl$setFluid(x, y, z, null);
+        } else {
+            fl$setFluid(x, y, z, currentFluid);
+        }
+    }
+
+    @Unique
+    private Chunk fl$this() {
+        return (Chunk)(Object)this;
     }
 }

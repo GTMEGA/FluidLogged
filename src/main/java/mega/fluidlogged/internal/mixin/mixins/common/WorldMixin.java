@@ -28,18 +28,14 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import lombok.val;
-import lombok.var;
-import mega.fluidlogged.internal.FLUtil;
-import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.api.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLBlockRoot;
-import mega.fluidlogged.internal.mixin.hook.FLChunk;
+import mega.fluidlogged.api.FLChunk;
 import mega.fluidlogged.internal.mixin.hook.FLWorld;
-import mega.fluidlogged.internal.world.FLWorldDriver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -63,8 +59,6 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
 
     @Shadow public abstract boolean setBlock(int x, int y, int z, Block blockType);
 
-    @Shadow public abstract int getBlockMetadata(int x, int y, int z);
-
     @Inject(method = "setBlockToAir",
             at = @At("HEAD"),
             cancellable = true,
@@ -84,21 +78,7 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
                      target = "Lnet/minecraft/world/chunk/Chunk;func_150807_a(IIILnet/minecraft/block/Block;I)Z"),
                    require = 1)
     private boolean unFluidLog(Chunk chunk, int cX, int y, int cZ, Block block, int meta, Operation<Boolean> original,
-                               @Local(ordinal = 1) Block originalBlock,
-                               @Local(ordinal = 0,
-                                      argsOnly = true) int wX,
-                               @Local(ordinal = 2,
-                                      argsOnly = true) int wZ) {
-        val fl$chunk = (FLChunk) chunk;
-        var currentFluid = fl$chunk.fl$getFluid(cX, y, cZ);
-        if (currentFluid == null) {
-            currentFluid = FLUtil.fromWorldBlock(fl$this(), wX, y, wZ, originalBlock);
-        }
-        if (currentFluid == null || !FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, currentFluid)) {
-            fl$chunk.fl$setFluid(cX, y, cZ, null);
-        } else {
-            fl$chunk.fl$setFluid(cX, y, cZ, currentFluid);
-        }
+                               @Local(ordinal = 1) Block originalBlock) {
         return original.call(chunk, cX, y, cZ, block, meta);
     }
 
@@ -205,9 +185,4 @@ public abstract class WorldMixin implements FLBlockAccess, FLWorld {
     }
 
     // endregion
-
-    @Unique
-    private World fl$this() {
-        return (World) (Object) this;
-    }
 }

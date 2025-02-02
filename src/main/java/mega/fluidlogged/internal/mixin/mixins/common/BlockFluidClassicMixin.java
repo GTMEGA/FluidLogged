@@ -24,7 +24,7 @@ package mega.fluidlogged.internal.mixin.mixins.common;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import lombok.val;
-import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
+import mega.fluidlogged.api.FLBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;

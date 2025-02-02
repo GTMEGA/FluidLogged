@@ -28,7 +28,7 @@ import gnu.trove.list.array.TIntArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import mega.fluidlogged.Tags;
-import mega.fluidlogged.internal.mixin.hook.FLChunk;
+import mega.fluidlogged.api.FLChunk;
 import mega.fluidlogged.internal.mixin.hook.FLPacket;
 import mega.fluidlogged.internal.mixin.hook.FLSubChunk;
 import mega.fluidlogged.internal.mixin.hook.FLWorld;

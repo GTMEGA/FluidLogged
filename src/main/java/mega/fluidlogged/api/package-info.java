@@ -19,23 +19,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
+@ApiStatus.Experimental
+package mega.fluidlogged.api;
 
-package mega.fluidlogged.internal.mixin.hook;
-
-import lombok.val;
-import org.jetbrains.annotations.Nullable;
-
-import net.minecraftforge.fluids.Fluid;
-
-public interface FLBlockAccess {
-    default boolean fl$isFluidLogged(int x, int y, int z, @Nullable Fluid fluid) {
-        val fluidInChunk = fl$getFluid(x, y, z);
-        if (fluidInChunk == null)
-            return false;
-        if (fluid == null)
-            return true;
-        return fluid.equals(fluidInChunk);
-    }
-    void fl$setFluid(int x, int y, int z, @Nullable Fluid fluid);
-    @Nullable Fluid fl$getFluid(int x, int y, int z);
-}
+import org.jetbrains.annotations.ApiStatus;
