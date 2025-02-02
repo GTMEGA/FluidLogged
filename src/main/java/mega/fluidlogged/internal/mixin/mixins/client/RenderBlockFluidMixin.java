@@ -23,7 +23,7 @@
 package mega.fluidlogged.internal.mixin.mixins.client;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import lombok.val;
+import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,12 +42,7 @@ public abstract class RenderBlockFluidMixin {
                        target = "Lnet/minecraft/world/IBlockAccess;getBlock(III)Lnet/minecraft/block/Block;"),
               require = 4)
     private Block fluidHeightGetBlock(IBlockAccess world, int x, int y, int z) {
-        val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
-        val blockFluid = fluid == null ? null : fluid.getBlock();
-        if (blockFluid == null) {
-            return world.getBlock(x, y, z);
-        }
-        return blockFluid;
+        return FLUtil.getFluidOrBlock(world, x, y, z);
     }
 
     @Redirect(method = "getFluidHeightForRender",
@@ -55,12 +50,7 @@ public abstract class RenderBlockFluidMixin {
                        target = "Lnet/minecraft/world/IBlockAccess;getBlockMetadata(III)I"),
               require = 1)
     private int fluidHeightGetBlockMeta(IBlockAccess world, int x, int y, int z, @Local(argsOnly = true) BlockFluidBase inputBlock) {
-        val fluid = ((FLBlockAccess)world).fl$getFluid(x, y, z);
-        val blockFluid = fluid == null ? null : fluid.getBlock();
-        if (blockFluid == null) {
-            return world.getBlockMetadata(x, y, z);
-        }
-        return inputBlock.getMaxRenderHeightMeta();
+        return FLUtil.getFluidMeta(world, x, y, z, inputBlock.getMaxRenderHeightMeta());
     }
 
     @Redirect(method = "getFluidHeightForRender",
@@ -72,5 +62,21 @@ public abstract class RenderBlockFluidMixin {
             return 1;
         }
         return instance.getQuantaPercentage(world, x, y, z);
+    }
+
+    @Redirect(method = "renderWorldBlock",
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/IBlockAccess;getBlock(III)Lnet/minecraft/block/Block;"),
+              require = 1)
+    private Block renderWorldBlockGetBlock(IBlockAccess instance, int x, int y, int z) {
+        return FLUtil.getFluidOrBlock(instance, x, y, z);
+    }
+
+    @Redirect(method = "renderWorldBlock",
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/IBlockAccess;getBlockMetadata(III)I"),
+              require = 1)
+    private int renderWorldBlockGetMetadata(IBlockAccess instance, int x, int y, int z) {
+        return FLUtil.getFluidMeta(instance, x, y, z, 0);
     }
 }

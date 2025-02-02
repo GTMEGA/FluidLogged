@@ -38,6 +38,8 @@ public enum Mixin implements IMixin {
     // @formatter:off
 
     common_BlockLiquidMixin(Side.COMMON, always(), "BlockLiquidMixin"),
+    common_BlockDynamicLiquidMixin(Side.COMMON, always(), "BlockDynamicLiquidMixin"),
+    common_BlockFluidClassicMixin(Side.COMMON, always(), "BlockFluidClassicMixin"),
     common_BlockMixin(Side.COMMON, always(), "BlockMixin"),
     common_ChunkCacheMixin(Side.COMMON, always(), "ChunkCacheMixin"),
     common_ChunkMixin(Side.COMMON, always(), "ChunkMixin"),
@@ -48,6 +50,7 @@ public enum Mixin implements IMixin {
     common_WorldServerMixin(Side.COMMON, always(), "WorldServerMixin"),
 
     client_ActiveRenderInfoMixin(Side.CLIENT, always(), "ActiveRenderInfoMixin"),
+    client_BlockFluidBaseMixin(Side.CLIENT, always(), "BlockFluidBaseMixin"),
     client_BlockLiquidMixin(Side.CLIENT, always(), "BlockLiquidMixin"),
     client_RenderBlockFluidMixin(Side.CLIENT, always(), "RenderBlockFluidMixin"),
     client_RenderBlocksMixin(Side.CLIENT, always(), "RenderBlocksMixin"),

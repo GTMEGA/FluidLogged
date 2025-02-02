@@ -25,8 +25,6 @@ package mega.fluidlogged.internal;
 import lombok.val;
 import mega.fluidlogged.internal.mixin.hook.FLBlockAccess;
 import mega.fluidlogged.internal.mixin.hook.FLWorld;
-import mega.fluidlogged.internal.sim.ForgeFluidSim;
-import mega.fluidlogged.internal.sim.VanillaFluidSim;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,19 +51,18 @@ import java.util.function.Consumer;
 
 public class FLUtil {
     public static Block getFluidOrBlock(IBlockAccess access, int x, int y, int z) {
-        val b = access.getBlock(x, y, z);
         if (!(access instanceof FLBlockAccess))
-            return b;
+            return access.getBlock(x, y, z);
         val fluid = ((FLBlockAccess)access).fl$getFluid(x, y, z);
         if (fluid == null)
-            return b;
+            return access.getBlock(x, y, z);
         val block = fluid.getBlock();
         if (block == null)
-            return b;
+            return access.getBlock(x, y, z);
         return block;
     }
 
-    public static int getFluidMeta(IBlockAccess access, int x, int y, int z) {
+    public static int getFluidMeta(IBlockAccess access, int x, int y, int z, int max) {
         if (!(access instanceof FLBlockAccess))
             return access.getBlockMetadata(x, y, z);
         val fluid = ((FLBlockAccess)access).fl$getFluid(x, y, z);
@@ -74,7 +71,7 @@ public class FLUtil {
         val block = fluid.getBlock();
         if (block == null)
             return access.getBlockMetadata(x, y, z);
-        return 0;
+        return max;
     }
 
     public static void fireBucketEvent(ItemStack item, World world, EntityPlayer player, Consumer<ItemStack> resultCallback, MovingObjectPosition pos) {
@@ -109,7 +106,7 @@ public class FLUtil {
         if (fluidBlock instanceof BlockLiquid) {
             ((FLWorld)world).fl$scheduleFluidUpdate(x, y, z, block, fluidBlock.tickRate(world));
         } else if (fluidBlock instanceof IFluidBlock) {
-            // TODO
+            ((FLWorld)world).fl$scheduleFluidUpdate(x, y, z, block, fluidBlock.tickRate(world));
         }
     }
 
@@ -118,20 +115,26 @@ public class FLUtil {
         if (block == null)
             return;
         if (block instanceof BlockLiquid) {
-            VanillaFluidSim.simulate(world, x, y, z, random, (BlockLiquid) resolveVanillaSimulationLiquid(block));
+            val simBlock = resolveVanillaSimulationLiquid(block);
+            if (simBlock != null) {
+                simBlock.updateTick(world, x, y, z, random);
+            }
         } else if (block instanceof BlockFluidClassic) {
-            ForgeFluidSim.simulate(world, x, y, z, random, (BlockFluidClassic) block);
+            block.updateTick(world, x, y, z, random);
         }
     }
 
-    private static Block resolveVanillaSimulationLiquid(Block block) {
+    private static @Nullable BlockDynamicLiquid resolveVanillaSimulationLiquid(Block block) {
+        if (block instanceof BlockDynamicLiquid) {
+            return (BlockDynamicLiquid) block;
+        }
         if (block instanceof BlockStaticLiquid) {
             val dynamic = Block.getBlockById(Block.getIdFromBlock(block) - 1);
             if (dynamic instanceof BlockDynamicLiquid && dynamic.getMaterial() == block.getMaterial()) {
-                return dynamic;
+                return (BlockDynamicLiquid) dynamic;
             }
         }
-        return block;
+        return null;
     }
 
     public static @Nullable Fluid fromWorldBlock(@NotNull World world, int x, int y, int z, @NotNull Block block) {

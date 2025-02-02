@@ -79,13 +79,10 @@ public class MinecraftWorldDriver implements WorldDriver {
         if (block.isOpaqueCube())
             return false;
 
-        val fluidBlock = fluid.getBlock();
-        if (fluidBlock == null) {
-            return false;
-        }
-        if (fluidBlock == Blocks.lava) {
+        val temp = fluid.getTemperature();
+        if (temp >= 373) {
             return lavaLoggable.contains(block);
-        } else if (fluidBlock == Blocks.water) {
+        } else if (temp >= 273) {
             if (nonWaterLoggable.contains(block)) {
                 return false;
             }
@@ -101,7 +98,7 @@ public class MinecraftWorldDriver implements WorldDriver {
             nonWaterLoggable.add(block);
             return false;
         } else {
-            return false;
+            return lavaLoggable.contains(block);
         }
     }
 

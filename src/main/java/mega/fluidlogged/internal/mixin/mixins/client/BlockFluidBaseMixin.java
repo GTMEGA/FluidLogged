@@ -28,25 +28,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;
+import net.minecraftforge.fluids.BlockFluidBase;
 
-@Mixin(RenderBlocks.class)
-public abstract class RenderBlocksMixin {
-
-    @Redirect(method = "getLiquidHeight",
+@Mixin(BlockFluidBase.class)
+public abstract class BlockFluidBaseMixin {
+    @Redirect(method = "shouldSideBeRendered",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/IBlockAccess;getBlock(III)Lnet/minecraft/block/Block;"),
               require = 1)
-    private Block hijackGetBlock(IBlockAccess instance, int x, int y, int z) {
+    private Block getFluidLogged(IBlockAccess instance, int x, int y, int z) {
         return FLUtil.getFluidOrBlock(instance, x, y, z);
-    }
-
-    @Redirect(method = "getLiquidHeight",
-              at = @At(value = "INVOKE",
-                       target = "Lnet/minecraft/world/IBlockAccess;getBlockMetadata(III)I"),
-              require = 1)
-    private int hijackMeta(IBlockAccess instance, int x, int y, int z) {
-        return FLUtil.getFluidMeta(instance, x, y, z, 0);
     }
 }

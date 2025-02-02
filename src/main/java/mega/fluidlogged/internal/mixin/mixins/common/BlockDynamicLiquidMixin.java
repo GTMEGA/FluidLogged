@@ -20,33 +20,28 @@
  * along with FluidLogged.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package mega.fluidlogged.internal.mixin.mixins.client;
+package mega.fluidlogged.internal.mixin.mixins.common;
 
-import mega.fluidlogged.internal.FLUtil;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import net.minecraft.block.Block;
-import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.block.BlockDynamicLiquid;
+import net.minecraft.world.World;
 
-@Mixin(RenderBlocks.class)
-public abstract class RenderBlocksMixin {
+@Mixin(BlockDynamicLiquid.class)
+public abstract class BlockDynamicLiquidMixin {
+    @Shadow protected abstract void func_149811_n(World p_149811_1_, int p_149811_2_, int p_149811_3_, int p_149811_4_);
 
-    @Redirect(method = "getLiquidHeight",
+    @Redirect(method = "updateTick",
               at = @At(value = "INVOKE",
-                       target = "Lnet/minecraft/world/IBlockAccess;getBlock(III)Lnet/minecraft/block/Block;"),
-              require = 1)
-    private Block hijackGetBlock(IBlockAccess instance, int x, int y, int z) {
-        return FLUtil.getFluidOrBlock(instance, x, y, z);
-    }
-
-    @Redirect(method = "getLiquidHeight",
-              at = @At(value = "INVOKE",
-                       target = "Lnet/minecraft/world/IBlockAccess;getBlockMetadata(III)I"),
-              require = 1)
-    private int hijackMeta(IBlockAccess instance, int x, int y, int z) {
-        return FLUtil.getFluidMeta(instance, x, y, z, 0);
+                       target = "Lnet/minecraft/block/BlockDynamicLiquid;func_149811_n(Lnet/minecraft/world/World;III)V"),
+              require = 2)
+    private void safeMakeStatic(BlockDynamicLiquid instance, World world, int x, int y, int z) {
+        if (world.getBlock(x, y, z) != instance) {
+            return;
+        }
+        ((BlockDynamicLiquidMixin)(Object)instance).func_149811_n(world, x, y, z);
     }
 }

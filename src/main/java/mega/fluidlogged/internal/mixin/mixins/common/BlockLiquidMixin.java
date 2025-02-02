@@ -47,7 +47,7 @@ public abstract class BlockLiquidMixin {
                        target = "Lnet/minecraft/world/World;getBlockMetadata(III)I"),
               require = 1)
     private int hijackGetMeta(World world, int x, int y, int z) {
-        return FLUtil.getFluidMeta(world, x, y, z);
+        return FLUtil.getFluidMeta(world, x, y, z, 0);
     }
 
     @Redirect(method = "getEffectiveFlowDecay",
@@ -63,7 +63,7 @@ public abstract class BlockLiquidMixin {
                        target = "Lnet/minecraft/world/IBlockAccess;getBlockMetadata(III)I"),
               require = 1)
     private int hijackMetaDecay(IBlockAccess instance, int x, int y, int z) {
-        return FLUtil.getFluidMeta(instance, x, y, z);
+        return FLUtil.getFluidMeta(instance, x, y, z, 0);
     }
 
     @Redirect(method = "func_149805_n",

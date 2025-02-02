@@ -70,7 +70,6 @@ public abstract class EntityMixin {
               remap = false,
               require = 1)
     private float hackFilledPercentage(IFluidBlock instance, World world, int x, int y, int z) {
-        // TODO
         return instance.getFilledPercentage(world, x, y, z);
     }
 
