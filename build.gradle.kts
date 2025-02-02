@@ -28,6 +28,14 @@ minecraft_fp {
     tokens {
         tokenClass = "Tags"
     }
+
+    publish {
+        changelog = "https://github.com/GTMEGA/FluidLogged/releases/tag/$version"
+        maven {
+            repoName = "mega"
+            repoUrl = "https://mvn.falsepattern.com/gtmega_releases"
+        }
+    }
 }
 
 repositories {
