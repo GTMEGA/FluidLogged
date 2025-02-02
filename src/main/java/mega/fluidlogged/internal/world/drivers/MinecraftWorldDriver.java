@@ -38,7 +38,6 @@ import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.init.Blocks;
-
 import net.minecraftforge.fluids.Fluid;
 
 import java.util.ArrayList;
