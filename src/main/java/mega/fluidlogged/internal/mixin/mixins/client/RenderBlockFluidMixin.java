@@ -34,8 +34,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.fluids.BlockFluidBase;
 import net.minecraftforge.fluids.RenderBlockFluid;
 
-@Mixin(value = RenderBlockFluid.class,
-       remap = false)
+@Mixin(value = RenderBlockFluid.class)
 public abstract class RenderBlockFluidMixin {
     @Redirect(method = "getFluidHeightForRender",
               at = @At(value = "INVOKE",
@@ -56,6 +55,7 @@ public abstract class RenderBlockFluidMixin {
     @Redirect(method = "getFluidHeightForRender",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraftforge/fluids/BlockFluidBase;getQuantaPercentage(Lnet/minecraft/world/IBlockAccess;III)F"),
+              remap = false,
               require = 1)
     private float fluidHeightQuanta(BlockFluidBase instance, IBlockAccess world, int x, int y, int z) {
         if (((FLBlockAccess)world).fl$isFluidLogged(x, y, z, null)) {
