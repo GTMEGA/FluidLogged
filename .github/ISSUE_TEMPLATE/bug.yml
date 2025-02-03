@@ -1,0 +1,35 @@
+name: Crash
+description: The game crashes when FluidLogged is present
+title: "[Crash]: "
+labels: ["bug"]
+assignees:
+  - falsepattern
+body:
+  - type: input
+    id: modpack
+    attributes:
+      label: Modpack (Optional)
+      description: If you used the mod in a modpack, you should include the pack's exact name and version here to make debugging easier.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Game log
+      description: Attach the fml-client-latest.log file here.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe how and when you experience this bug.
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Minimal reproducible example modlist (recommended)
+      description: Try to get a minimal reproducible example of the crash with the fewest mods you can. You can skip this, but then your issue will be low priority.
+    validations:
+      required: false

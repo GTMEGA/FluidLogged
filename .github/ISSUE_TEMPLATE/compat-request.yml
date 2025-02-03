@@ -1,0 +1,53 @@
+name: Compatibility Request
+description: If you tested FluidLogged with another mod and it has blocks that can't be fluidlogged even though they should be, you can ask for compatibility here
+title: "[Compatibility Request]: "
+labels: ["compat request"]
+assignees:
+  - falsepattern
+body:
+  - type: input
+    id: modname
+    attributes:
+      label: Other mod's name
+      description: The name of the other mod
+    validations:
+      required: true
+  - type: input
+    id: modurl
+    attributes:
+      label: Other mod's homepage
+      description: A link to the main site where the other mod is hosted. Preferrably the original website of a mod, but a modrinth/curseforge/whatever page is also acceptable. Do not post a raw download link, those requests will be ignored.
+    validations:
+      required: true
+  - type: dropdown
+    id: license
+    attributes:
+      label: Other mod's license
+      description: What license does the other mod have? (Open source mods are easier to write compatibility patches for)
+      options:
+        - All Rights Reserved
+        - AGPLv3
+        - AGPLv2
+        - GPLv3
+        - GPLv2
+        - LGPLv3
+        - LGPLv2
+        - Apache 2.0
+        - Beerware
+        - BSD 3-Clause
+        - BSD 2-Clause
+        - EPL 2.0
+        - MIT
+        - MPL 2.0
+        - Unlicense
+        - WTFPL
+        - Other open source license (please specify in the description)
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: You can attach screenshots here. Please also mention which blocks they are specifically.
+    validations:
+      required: false
