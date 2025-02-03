@@ -24,9 +24,11 @@ package mega.fluidlogged.internal.core;
 
 import com.falsepattern.lib.asm.ASMUtil;
 import com.falsepattern.lib.mapping.MappingManager;
-import com.falsepattern.lib.mapping.types.UniversalMethod;
+import com.falsepattern.lib.mapping.types.MappingType;
+import com.falsepattern.lib.mapping.types.NameType;
 import com.falsepattern.lib.turboasm.ClassNodeHandle;
 import com.falsepattern.lib.turboasm.TurboClassTransformer;
+import lombok.SneakyThrows;
 import lombok.val;
 import mega.fluidlogged.Tags;
 import org.jetbrains.annotations.NotNull;
@@ -75,12 +77,19 @@ public class FluidLogRendererInjector implements TurboClassTransformer {
         return "net.minecraft.client.renderer.WorldRenderer".equals(className);
     }
 
+    @SneakyThrows
     @Override
     public boolean transformClass(@NotNull String className, @NotNull ClassNodeHandle classNode) {
         val cn = classNode.getNode();
         if (cn == null) {
             return false;
         }
+        val type = ASMUtil.discoverClassMappingType(cn);
+        val block = MappingManager.classForName(NameType.Regular, MappingType.MCP, "net.minecraft.block.Block");
+        val blockMethod = block.getMethod(MappingType.MCP, "getRenderBlockPass", "()I");
+        val blockClassNameInternal = block.internalName().get(type);
+        val blockMethodName = blockMethod.name().get(type);
+        val blockMethodDesc = blockMethod.descriptor().get(type);
         val method = ASMUtil.findMethodFromMCP(cn, "updateRenderer", "(Lnet/minecraft/entity/EntityLivingBase;)V", false);
         val iter = method.instructions.iterator();
         while (iter.hasNext()) {
@@ -88,16 +97,9 @@ public class FluidLogRendererInjector implements TurboClassTransformer {
             if (!(insn instanceof MethodInsnNode))
                 continue;
             val mInsn = (MethodInsnNode) insn;
-            UniversalMethod uMethod;
-            try {
-                uMethod = MappingManager.getMethod(mInsn);
-            } catch (ClassNotFoundException | NoSuchMethodException ignored) {
-                continue;
-            }
-            if (!"net.minecraft.block.Block".equals(uMethod.parent().regularName().mcp())) {
-                continue;
-            }
-            if (!"getRenderBlockPass".equals(uMethod.name().mcp())) {
+            if (!blockClassNameInternal.equals(mInsn.owner) ||
+                !blockMethodName.equals(mInsn.name) ||
+                !blockMethodDesc.equals(mInsn.desc)) {
                 continue;
             }
             iter.previous();
