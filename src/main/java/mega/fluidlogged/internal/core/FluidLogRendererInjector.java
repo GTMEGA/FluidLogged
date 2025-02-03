@@ -88,15 +88,16 @@ public class FluidLogRendererInjector implements TurboClassTransformer {
             if (!(insn instanceof MethodInsnNode))
                 continue;
             val mInsn = (MethodInsnNode) insn;
-            if (!"net/minecraft/block/Block".equals(mInsn.owner))
-                continue;
             UniversalMethod uMethod;
             try {
                 uMethod = MappingManager.getMethod(mInsn);
             } catch (ClassNotFoundException | NoSuchMethodException ignored) {
                 continue;
             }
-            if (!"getRenderBlockPass".equals(uMethod.name.mcp())) {
+            if (!"net.minecraft.block.Block".equals(uMethod.parent().regularName().mcp())) {
+                continue;
+            }
+            if (!"getRenderBlockPass".equals(uMethod.name().mcp())) {
                 continue;
             }
             iter.previous();

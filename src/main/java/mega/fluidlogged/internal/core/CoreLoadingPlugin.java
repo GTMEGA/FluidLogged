@@ -29,6 +29,8 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;
 
+@IFMLLoadingPlugin.MCVersion("1.7.10")
+@IFMLLoadingPlugin.Name(Tags.MOD_ID)
 @IFMLLoadingPlugin.TransformerExclusions(Tags.ROOT_PKG + ".internal.core")
 public class CoreLoadingPlugin implements IFMLLoadingPlugin {
     @Override
