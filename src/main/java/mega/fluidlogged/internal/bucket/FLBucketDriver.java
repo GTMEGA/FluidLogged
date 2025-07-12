@@ -30,6 +30,7 @@ import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.api.FLBlockAccess;
 import mega.fluidlogged.internal.world.FLWorldDriver;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -113,21 +114,7 @@ public class FLBucketDriver {
         if (bucketState == BucketState.Empty) {
             newBucket = handleBucketFill(event.current, event.world, hit.blockX, hit.blockY, hit.blockZ);
         } else if (bucketState == BucketState.Filled) {
-            System.out.println("here 2");
-            int i = hit.blockX;
-            int j = hit.blockY;
-            int k = hit.blockZ;
-
-            switch (hit.sideHit) {
-                case 0: --j;
-                case 1: ++j;
-                case 2: --k;
-                case 3: ++k;
-                case 4: --i;
-                case 5: ++i;
-            }
-
-            newBucket = handleBucketDrain(event.current, event.world, i, j, k);
+            newBucket = handleBucketDrain(event.current, event.world, hit.blockX, hit.blockY, hit.blockZ, hit.sideHit);
         } else {
             return;
         }
@@ -168,7 +155,7 @@ public class FLBucketDriver {
         return null;
     }
 
-    private ItemStack handleBucketDrain(ItemStack bucket, World world, int x, int y, int z) {
+    private ItemStack handleBucketDrain(ItemStack bucket, World world, int x, int y, int z, int sideHit) {
         val result = emptyBucket(bucket);
         if (result == null) {
             return null;
@@ -179,12 +166,41 @@ public class FLBucketDriver {
         if (fluidBlock == null) {
             return null;
         }
-        val block = world.getBlock(x, y, z);
-        val meta = world.getBlockMetadata(x, y, z);
-        val isFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
+
+        Block block = world.getBlock(x, y, z);
+        int meta = world.getBlockMetadata(x, y, z);
+        val hitIsFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
         val wlWorld = (FLBlockAccess) world;
-        if (!isFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
-            return null;
+        boolean flag = false;
+        // If the hit block can't be fluidlogged, or if it is already fluid logged, then we want to
+        // adjust the hit coordinates to place against that block. For example, if we hit a stone block
+        // underneath a fence, then we want to adjust the Y coordinate up one, and re-try the fill on the fence
+        // block rather than the block we actually clicked on.
+        if (!hitIsFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
+            if (sideHit == 0) {
+                --y;
+            } else if (sideHit == 1) {
+                ++y;
+            } else if (sideHit == 2) {
+                --z;
+            } else if (sideHit == 3) {
+                ++z;
+            } else if (sideHit == 4) {
+                --x;
+            } else if (sideHit == 5) {
+                ++x;
+            }
+
+            block = world.getBlock(x, y, z);
+            meta = world.getBlockMetadata(x, y, z);
+            flag = true;
+        }
+
+        if (flag) {
+            val adjustedFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
+            if (!adjustedFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
+                return null;
+            }
         }
 
         wlWorld.fl$setFluid(x, y, z, fluid);
@@ -198,7 +214,6 @@ public class FLBucketDriver {
         val wlWorld = (FLBlockAccess) world;
         val fluid = wlWorld.fl$getFluid(x, y, z);
         if (fluid != null) {
-            System.out.println("fluid is not null");
             val newBucket = fillBucket(fluid, bucket);
             if (newBucket == null)
                 return null;
@@ -208,7 +223,6 @@ public class FLBucketDriver {
             world.markBlockForUpdate(x, y, z);
             return newBucket;
         }
-        System.out.println("fluid is null");
         return null;
     }
 
