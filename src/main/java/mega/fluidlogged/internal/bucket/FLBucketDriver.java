@@ -30,6 +30,7 @@ import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.api.FLBlockAccess;
 import mega.fluidlogged.internal.world.FLWorldDriver;
 
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
@@ -75,7 +76,21 @@ public class FLBucketDriver {
         if (hit.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             return;
         }
-        val newBucket = handleBucket(event.current, event.world, hit.blockX, hit.blockY, hit.blockZ);
+
+        val bucketState = queryState(event.current);
+        if (bucketState == null) {
+            return;
+        }
+
+        ItemStack newBucket = null;
+        if (bucketState == BucketState.Empty) {
+            newBucket = handleBucketFill(event.current, event.world, hit.blockX, hit.blockY, hit.blockZ);
+        } else if (bucketState == BucketState.Filled) {
+            newBucket = handleBucketDrain(event.current, event.world, hit.blockX, hit.blockY, hit.blockZ, hit.sideHit);
+        } else {
+            return;
+        }
+
         if (newBucket != null) {
             event.result = newBucket;
             event.setResult(Event.Result.ALLOW);
@@ -112,19 +127,7 @@ public class FLBucketDriver {
         return null;
     }
 
-    private ItemStack handleBucket(ItemStack bucket, World world, int x, int y, int z) {
-        val bucketState = queryState(bucket);
-        if (bucketState == null) {
-            return null;
-        }
-        switch (bucketState) {
-            case Empty: return handleBucketFill(bucket, world, x, y, z);
-            case Filled: return handleBucketDrain(bucket, world, x, y, z);
-            default: return null;
-        }
-    }
-
-    private ItemStack handleBucketDrain(ItemStack bucket, World world, int x, int y, int z) {
+    private ItemStack handleBucketDrain(ItemStack bucket, World world, int x, int y, int z, int sideHit) {
         val result = emptyBucket(bucket);
         if (result == null) {
             return null;
@@ -135,13 +138,43 @@ public class FLBucketDriver {
         if (fluidBlock == null) {
             return null;
         }
-        val block = world.getBlock(x, y, z);
-        val meta = world.getBlockMetadata(x, y, z);
-        val isFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
+
+        Block block = world.getBlock(x, y, z);
+        int meta = world.getBlockMetadata(x, y, z);
+        val hitIsFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
         val wlWorld = (FLBlockAccess) world;
-        if (!isFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
-            return null;
+        boolean flag = false;
+        // If the hit block can't be fluidlogged, or if it is already fluid logged, then we want to
+        // adjust the hit coordinates to place against that block. For example, if we hit a stone block
+        // underneath a fence, then we want to adjust the Y coordinate up one, and re-try the fill on the fence
+        // block rather than the block we actually clicked on.
+        if (!hitIsFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
+            if (sideHit == 0) {
+                --y;
+            } else if (sideHit == 1) {
+                ++y;
+            } else if (sideHit == 2) {
+                --z;
+            } else if (sideHit == 3) {
+                ++z;
+            } else if (sideHit == 4) {
+                --x;
+            } else if (sideHit == 5) {
+                ++x;
+            }
+
+            block = world.getBlock(x, y, z);
+            meta = world.getBlockMetadata(x, y, z);
+            flag = true;
         }
+
+        if (flag) {
+            val adjustedFluidLoggable = FLWorldDriver.INSTANCE.canBeFluidLogged(block, meta, fluid);
+            if (!adjustedFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
+                return null;
+            }
+        }
+
         wlWorld.fl$setFluid(x, y, z, fluid);
         FLUtil.onFluidPlacedInto(world, x, y, z, block, fluidBlock);
         world.notifyBlocksOfNeighborChange(x, y, z, block);
