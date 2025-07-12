@@ -30,8 +30,12 @@ import mega.fluidlogged.internal.FLUtil;
 import mega.fluidlogged.api.FLBlockAccess;
 import mega.fluidlogged.internal.world.FLWorldDriver;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.fluids.Fluid;
@@ -67,6 +71,30 @@ public class FLBucketDriver {
         }
     }
 
+    protected MovingObjectPosition getMovingObjectPositionFromPlayer(World worldIn, EntityPlayer player, boolean useLiquids)
+    {
+        float f = 1.0F;
+        float f1 = player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * f;
+        float f2 = player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * f;
+        double d0 = player.prevPosX + (player.posX - player.prevPosX) * (double)f;
+        double d1 = player.prevPosY + (player.posY - player.prevPosY) * (double)f + (double)(worldIn.isRemote ? player.getEyeHeight() - player.getDefaultEyeHeight() : player.getEyeHeight()); // isRemote check to revert changes to ray trace position due to adding the eye height clientside and player yOffset differences
+        double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * (double)f;
+        Vec3 vec3 = Vec3.createVectorHelper(d0, d1, d2);
+        float f3 = MathHelper.cos(-f2 * 0.017453292F - (float)Math.PI);
+        float f4 = MathHelper.sin(-f2 * 0.017453292F - (float)Math.PI);
+        float f5 = -MathHelper.cos(-f1 * 0.017453292F);
+        float f6 = MathHelper.sin(-f1 * 0.017453292F);
+        float f7 = f4 * f5;
+        float f8 = f3 * f5;
+        double d3 = 5.0D;
+        if (player instanceof EntityPlayerMP)
+        {
+            d3 = ((EntityPlayerMP)player).theItemInWorldManager.getBlockReachDistance();
+        }
+        Vec3 vec31 = vec3.addVector((double)f7 * d3, (double)f6 * d3, (double)f8 * d3);
+        return worldIn.func_147447_a(vec3, vec31, useLiquids, !useLiquids, false);
+    }
+
     @SubscribeEvent(
             priority = EventPriority.HIGHEST
     )
@@ -75,7 +103,35 @@ public class FLBucketDriver {
         if (hit.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             return;
         }
-        val newBucket = handleBucket(event.current, event.world, hit.blockX, hit.blockY, hit.blockZ);
+
+        val bucketState = queryState(event.current);
+        if (bucketState == null) {
+            return;
+        }
+
+        ItemStack newBucket = null;
+        if (bucketState == BucketState.Empty) {
+            newBucket = handleBucketFill(event.current, event.world, hit.blockX, hit.blockY, hit.blockZ);
+        } else if (bucketState == BucketState.Filled) {
+            System.out.println("here 2");
+            int i = hit.blockX;
+            int j = hit.blockY;
+            int k = hit.blockZ;
+
+            switch (hit.sideHit) {
+                case 0: --j;
+                case 1: ++j;
+                case 2: --k;
+                case 3: ++k;
+                case 4: --i;
+                case 5: ++i;
+            }
+
+            newBucket = handleBucketDrain(event.current, event.world, i, j, k);
+        } else {
+            return;
+        }
+
         if (newBucket != null) {
             event.result = newBucket;
             event.setResult(Event.Result.ALLOW);
@@ -112,18 +168,6 @@ public class FLBucketDriver {
         return null;
     }
 
-    private ItemStack handleBucket(ItemStack bucket, World world, int x, int y, int z) {
-        val bucketState = queryState(bucket);
-        if (bucketState == null) {
-            return null;
-        }
-        switch (bucketState) {
-            case Empty: return handleBucketFill(bucket, world, x, y, z);
-            case Filled: return handleBucketDrain(bucket, world, x, y, z);
-            default: return null;
-        }
-    }
-
     private ItemStack handleBucketDrain(ItemStack bucket, World world, int x, int y, int z) {
         val result = emptyBucket(bucket);
         if (result == null) {
@@ -142,6 +186,7 @@ public class FLBucketDriver {
         if (!isFluidLoggable || wlWorld.fl$isFluidLogged(x, y, z, null)) {
             return null;
         }
+
         wlWorld.fl$setFluid(x, y, z, fluid);
         FLUtil.onFluidPlacedInto(world, x, y, z, block, fluidBlock);
         world.notifyBlocksOfNeighborChange(x, y, z, block);
@@ -153,6 +198,7 @@ public class FLBucketDriver {
         val wlWorld = (FLBlockAccess) world;
         val fluid = wlWorld.fl$getFluid(x, y, z);
         if (fluid != null) {
+            System.out.println("fluid is not null");
             val newBucket = fillBucket(fluid, bucket);
             if (newBucket == null)
                 return null;
@@ -162,6 +208,7 @@ public class FLBucketDriver {
             world.markBlockForUpdate(x, y, z);
             return newBucket;
         }
+        System.out.println("fluid is null");
         return null;
     }
 
