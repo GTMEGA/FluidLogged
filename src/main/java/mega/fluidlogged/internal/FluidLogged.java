@@ -38,7 +38,8 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
      version = Tags.MOD_VERSION,
      name = Tags.MOD_NAME,
      acceptedMinecraftVersions = "[1.7.10]",
-     dependencies = "required-after:chunkapi@[0.6.0,);")
+     dependencies = "required-after:chunkapi@[0.6.4,);" +
+                    "required-after:falsepatternlib@[1.7.0,);")
 public class FluidLogged {
 
     @Mod.EventHandler

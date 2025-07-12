@@ -44,7 +44,7 @@ repositories {
 }
 
 dependencies {
-    implementationSplit("com.falsepattern:falsepatternlib-mc1.7.10:1.5.9")
-    implementationSplit("com.falsepattern:chunkapi-mc1.7.10:0.6.1")
+    implementationSplit("com.falsepattern:falsepatternlib-mc1.7.10:1.7.0")
+    implementationSplit("com.falsepattern:chunkapi-mc1.7.10:0.6.4")
     compileOnly(deobfCurse("cofhcore-69162:2388750"))
 }
